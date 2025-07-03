@@ -10,6 +10,7 @@
     <Compile Include="FunctionApplicationDetector.fs" />
     <Compile Include="SynExprPatterns.fs" />
     <Compile Include="SynModuleDeclPatterns.fs" />
+    <Compile Include="SynPatPatterns.fs" />
   </ItemGroup>
 
   <ItemGroup>
