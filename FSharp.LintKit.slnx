@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/LintKit.Analyzers/LintKit.Analyzers.fsproj" />
+    <Project Path="src/LintKit.CLI/LintKit.CLI.fsproj" />
+    <Project Path="tests/LintKit.Tests/LintKit.Tests.fsproj" />
+  </Folder>
+</Solution>
