@@ -17,7 +17,6 @@ let loadAnalyzerFromPath (dllPath: string) =
         else
             // Load the assembly
             let assembly = Assembly.LoadFrom(dllPath)
-            printfn $"Loaded assembly: {assembly.FullName}"
             
             // Find all analyzer functions/properties with CliAnalyzer attribute
             let methods = 
@@ -32,8 +31,6 @@ let loadAnalyzerFromPath (dllPath: string) =
                 |> Array.filter (fun p -> 
                     p.GetCustomAttributes(typeof<CliAnalyzerAttribute>, false).Length > 0)
             
-            printfn $"Found {methods.Length} methods with CliAnalyzer attribute"
-            printfn $"Found {properties.Length} properties with CliAnalyzer attribute"
             
             let analyzers = 
                 [
@@ -54,7 +51,6 @@ let loadAnalyzerFromPath (dllPath: string) =
                     // Then try methods (functions)
                     yield! methods |> Array.choose (fun m ->
                         try
-                            printfn $"Method: {m.Name}, ReturnType: {m.ReturnType}, Parameters: {m.GetParameters().Length}"
                             // Check if it's an analyzer function (CliContext -> Async<Message list>)
                             let paramTypes = m.GetParameters() |> Array.map (fun p -> p.ParameterType)
                             if paramTypes.Length = 1 && paramTypes.[0] = typeof<CliContext> then

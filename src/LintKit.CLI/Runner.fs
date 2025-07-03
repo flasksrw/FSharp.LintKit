@@ -18,7 +18,6 @@ let runAnalyzer (analyzer: Analyzer<CliContext>) (filePath: string) =
             else
                 // For now, create a simple mock context 
                 // TODO: Implement proper F# parsing and context creation
-                printfn $"Running analyzer on {filePath}"
                 
                 // Return empty messages for now - demonstrates the flow works
                 return Ok []
