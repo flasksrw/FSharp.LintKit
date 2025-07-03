@@ -1,6 +1,5 @@
 module LintKit.CLI.AnalyzerLoader
 
-open System
 open System.IO
 open System.Reflection
 open FSharp.Analyzers.SDK

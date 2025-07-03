@@ -41,7 +41,7 @@ let main argv =
                 printfn "Format: %s" format
             
             // Load analyzers from DLLs
-            let (loadedAnalyzers, errors) = LintKit.CLI.AnalyzerLoader.loadAnalyzersFromPaths analyzers
+            let loadedAnalyzers, errors = LintKit.CLI.AnalyzerLoader.loadAnalyzersFromPaths analyzers
             
             // Report any loading errors
             for error in errors do
@@ -64,7 +64,7 @@ let main argv =
                 let outputFormat = LintKit.CLI.Output.parseOutputFormat format
                 let output = LintKit.CLI.Output.formatOutput outputFormat result (verbose && not quiet)
                 
-                if not (System.String.IsNullOrWhiteSpace(output)) then
+                if not (String.IsNullOrWhiteSpace output) then
                     printfn "%s" output
                 
                 // Return appropriate exit code

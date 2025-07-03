@@ -1,6 +1,5 @@
 module LintKit.CLI.Runner
 
-open System
 open System.IO
 open FSharp.Analyzers.SDK
 open LintKit.CLI.AnalyzerLoader
@@ -10,10 +9,10 @@ type AnalysisResult = {
     Errors: string list
 }
 
-let runAnalyzer (analyzer: Analyzer<CliContext>) (filePath: string) =
+let runAnalyzer (_analyzer: Analyzer<CliContext>) (filePath: string) =
     async {
         try
-            if not (File.Exists(filePath)) then
+            if not (File.Exists filePath) then
                 return Error $"File not found: {filePath}"
             else
                 // For now, create a simple mock context 
@@ -35,8 +34,8 @@ let runAnalyzersOnFile (loadedAnalyzers: LoadedAnalyzer list) (filePath: string)
             for analyzer in loaded.Analyzers do
                 let! result = runAnalyzer analyzer filePath
                 match result with
-                | Ok messages -> results.AddRange(messages)
-                | Error error -> errors.Add(error)
+                | Ok messages -> results.AddRange messages
+                | Error error -> errors.Add error
         
         return {
             Messages = results |> Seq.toList
@@ -46,11 +45,11 @@ let runAnalyzersOnFile (loadedAnalyzers: LoadedAnalyzer list) (filePath: string)
 
 let findFSharpFiles (targetPath: string) =
     if File.Exists(targetPath) then
-        if targetPath.EndsWith(".fs") || targetPath.EndsWith(".fsx") then
+        if targetPath.EndsWith ".fs" || targetPath.EndsWith ".fsx" then
             [targetPath]
         else
             []
-    elif Directory.Exists(targetPath) then
+    elif Directory.Exists targetPath then
         Directory.GetFiles(targetPath, "*.fs", SearchOption.AllDirectories)
         |> Array.append (Directory.GetFiles(targetPath, "*.fsx", SearchOption.AllDirectories))
         |> Array.toList
@@ -72,8 +71,8 @@ let runAnalysisOnTarget (loadedAnalyzers: LoadedAnalyzer list) (targetPath: stri
             
             for file in files do
                 let! result = runAnalyzersOnFile loadedAnalyzers file
-                allResults.AddRange(result.Messages)
-                allErrors.AddRange(result.Errors)
+                allResults.AddRange result.Messages
+                allErrors.AddRange result.Errors
             
             return {
                 Messages = allResults |> Seq.toList
