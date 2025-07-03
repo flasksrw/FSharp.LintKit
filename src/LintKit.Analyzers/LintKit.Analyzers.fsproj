@@ -11,6 +11,7 @@
     <Compile Include="SynExprPatterns.fs" />
     <Compile Include="SynModuleDeclPatterns.fs" />
     <Compile Include="SynPatPatterns.fs" />
+    <Compile Include="SynTypePatterns.fs" />
   </ItemGroup>
 
   <ItemGroup>
