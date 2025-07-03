@@ -21,6 +21,8 @@
   <ItemGroup>
     <PackageReference Include="Argu" Version="6.2.5" />
     <PackageReference Include="FSharp.Analyzers.SDK" Version="0.31.0" />
+    <PackageReference Include="FSharp.Analyzers.SDK.Testing" Version="0.31.0" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.9.300" />
   </ItemGroup>
 
 </Project>

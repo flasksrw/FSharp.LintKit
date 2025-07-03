@@ -3,8 +3,11 @@
 /// </summary>
 module LintKit.CLI.Runner
 
+open System
 open System.IO
 open FSharp.Analyzers.SDK
+open FSharp.Analyzers.SDK.Testing
+open FSharp.Compiler.CodeAnalysis
 open LintKit.CLI.AnalyzerLoader
 
 /// <summary>
@@ -18,22 +21,72 @@ type AnalysisResult = {
 }
 
 /// <summary>
+/// Finds the project file (.fsproj) for a given F# source file
+/// </summary>
+/// <param name="filePath">Path to the F# source file</param>
+/// <returns>Path to the project file, or None if not found</returns>
+let findProjectFile (filePath: string) =
+    let rec searchUpward (dir: string) =
+        if Directory.Exists dir then
+            let projFiles = Directory.GetFiles(dir, "*.fsproj")
+            if projFiles.Length > 0 then
+                Some projFiles.[0]
+            else
+                let parent = Directory.GetParent(dir)
+                if parent <> null then
+                    searchUpward parent.FullName
+                else
+                    None
+        else
+            None
+    
+    let fileDir = 
+        if File.Exists filePath then
+            Path.GetDirectoryName(Path.GetFullPath(filePath))
+        elif Directory.Exists filePath then
+            Path.GetFullPath(filePath)
+        else
+            Environment.CurrentDirectory
+    
+    searchUpward fileDir
+
+/// <summary>
+/// Creates a CliContext for F# source file analysis with proper project context
+/// </summary>
+/// <param name="filePath">Path to the F# source file</param>
+/// <param name="sourceText">Source code content</param>
+/// <returns>Async CliContext for analysis</returns>
+let createCliContext (filePath: string) (sourceText: string) =
+    async {
+        match findProjectFile filePath with
+        | Some projFile ->
+            // TODO: Use Ionide.ProjInfo for proper project file parsing
+            // For now, log the project file found and use testing utilities
+            printfn "Found project file: %s" projFile
+            let! projectOptions = mkOptionsFromProject "net9.0" [] |> Async.AwaitTask
+            return getContext projectOptions sourceText
+        | None ->
+            // Fallback to testing utilities with basic .NET 9 context
+            let! projectOptions = mkOptionsFromProject "net9.0" [] |> Async.AwaitTask
+            return getContext projectOptions sourceText
+    }
+
+/// <summary>
 /// Runs a single analyzer on a file
 /// </summary>
-/// <param name="_analyzer">The analyzer to run (currently unused in mock implementation)</param>
+/// <param name="analyzer">The analyzer to run</param>
 /// <param name="filePath">Path to the F# file to analyze</param>
 /// <returns>Async result containing messages on success or error message on failure</returns>
-let runAnalyzer (_analyzer: Analyzer<CliContext>) (filePath: string) =
+let runAnalyzer (analyzer: Analyzer<CliContext>) (filePath: string) =
     async {
         try
             if not (File.Exists filePath) then
                 return Error $"File not found: {filePath}"
             else
-                // For now, create a simple mock context 
-                // TODO: Implement proper F# parsing and context creation
-                
-                // Return empty messages for now - demonstrates the flow works
-                return Ok []
+                let sourceText = File.ReadAllText(filePath)
+                let! context = createCliContext filePath sourceText
+                let! messages = analyzer context
+                return Ok messages
         with
         | ex ->
             return Error $"Failed to run analyzer on {filePath}: {ex.Message}"
