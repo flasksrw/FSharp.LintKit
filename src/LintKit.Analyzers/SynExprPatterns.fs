@@ -710,20 +710,8 @@ module SynExprPatterns =
             
             exprMessages @ analysisMessages
         
-        // === OTHER SYNEXPR PATTERNS ===
-        // There are many more SynExpr patterns in F# (60+ total), but the above 15 patterns
-        // cover the most commonly used expressions in typical F# code.
-        // The remaining patterns include specialized constructs like:
-        // - Computation expressions (DoBang, LetBang, etc.)
-        // - Quotations and meta-programming
-        // - Error recovery patterns
-        // - Library-only constructs
-        // For a complete reference implementation, those could be added incrementally.
-        
         | _ ->
-            // Handle all remaining SynExpr patterns
-            // For now, we don't analyze these specialized patterns
-            // This includes: AddressOf, AnonRecd, ComputationExpr, Quote, etc.
+            // Handle remaining SynExpr patterns not covered above
             []
     
     /// <summary>

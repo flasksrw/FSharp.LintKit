@@ -473,13 +473,6 @@ module SynModuleDeclPatterns =
             
             analysisMessages
         
-        // === PATTERN MATCHING COMPLETE ===
-        // All 10 SynModuleDecl pattern cases have been implemented above:
-        // 1. Let, 2. Types, 3. Open, 4. NestedModule, 5. ModuleAbbrev
-        // 6. Attributes, 7. Expr, 8. HashDirective, 9. Exception, 10. NamespaceFragment
-        // + Range (member property, not a pattern case)
-        // 
-        // Pattern matching is exhaustive - no wildcard case needed.
     
     /// <summary>
     /// Sample analyzer that uses the SynModuleDecl pattern matching

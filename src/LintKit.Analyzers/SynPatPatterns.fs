@@ -779,14 +779,6 @@ module SynPatPatterns =
             
             nestedMessages @ analysisMessages
         
-        // === PATTERN MATCHING COMPLETE ===
-        // All 21 SynPat pattern cases have been implemented above:
-        // 1. Const, 2. Wild, 3. Named, 4. Typed, 5. Attrib, 6. Or, 7. ListCons
-        // 8. Ands, 9. As, 10. LongIdent, 11. Tuple, 12. Paren, 13. ArrayOrList
-        // 14. Record, 15. Null, 16. OptionalVal, 17. IsInst, 18. QuoteExpr
-        // 19. InstanceMember, 20. FromParseError
-        // 
-        // Pattern matching is exhaustive - no wildcard case needed.
     
     /// <summary>
     /// Sample analyzer that uses the SynPat pattern matching
