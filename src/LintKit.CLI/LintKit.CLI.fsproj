@@ -23,6 +23,8 @@
     <PackageReference Include="FSharp.Analyzers.SDK" Version="0.31.0" />
     <PackageReference Include="FSharp.Analyzers.SDK.Testing" Version="0.31.0" />
     <PackageReference Include="FSharp.Compiler.Service" Version="43.9.300" />
+    <PackageReference Include="Ionide.ProjInfo" Version="0.71.2" />
+    <PackageReference Include="Ionide.ProjInfo.FCS" Version="0.71.2" />
   </ItemGroup>
 
 </Project>
