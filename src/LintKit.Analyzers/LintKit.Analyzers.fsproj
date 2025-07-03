@@ -9,4 +9,8 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.31.0" />
+  </ItemGroup>
+
 </Project>
