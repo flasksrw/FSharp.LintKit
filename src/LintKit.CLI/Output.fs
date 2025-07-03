@@ -55,7 +55,7 @@ let formatTextOutput (result: AnalysisResult) (verbose: bool) =
                 | Severity.Warning -> "warning"
                 | Severity.Error -> "error"
                 | Severity.Info -> "info"
-                | _ -> "unknown"
+                | Severity.Hint -> "hint"
             
             output.AppendLine($"[{message.Code}] {severityStr}: {message.Message}") |> ignore
             
@@ -95,7 +95,7 @@ let formatSarifOutput (result: AnalysisResult) =
                         | Severity.Error -> "error"
                         | Severity.Warning -> "warning"
                         | Severity.Info -> "note"
-                        | _ -> "warning"
+                        | Severity.Hint -> "note"
                 message = {| text = message.Message |}
                 locations = [|
                     {|
