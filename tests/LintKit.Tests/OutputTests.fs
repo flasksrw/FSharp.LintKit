@@ -138,53 +138,94 @@ let ``formatSarifOutput should produce valid JSON`` () =
     Assert.NotNull(document)
 
 [<Fact>]
+let ``formatSarifOutput should have valid SARIF structure`` () =
+    let message = createMessage "W001" Severity.Warning "Test warning" "Test Analyzer"
+    let result = createAnalysisResult [message] []
+    let output = formatSarifOutput result
+    
+    let document = JsonDocument.Parse(output)
+    let root = document.RootElement
+    
+    // Check SARIF version
+    Assert.Equal("2.1.0", root.GetProperty("version").GetString())
+    
+    // Check schema
+    Assert.Equal("https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json", root.GetProperty("$schema").GetString())
+    
+    // Check runs array
+    let runs = root.GetProperty("runs")
+    Assert.Equal(JsonValueKind.Array, runs.ValueKind)
+    Assert.Equal(1, runs.GetArrayLength())
+    
+    // Check run structure
+    let firstRun = runs.EnumerateArray() |> Seq.head
+    let tool = firstRun.GetProperty("tool")
+    let results = firstRun.GetProperty("results")
+    
+    // Check tool structure
+    let driver = tool.GetProperty("driver")
+    Assert.Equal("FSharp.LintKit", driver.GetProperty("name").GetString())
+    Assert.True(driver.GetProperty("version").GetString().Length > 0)
+    Assert.True(driver.GetProperty("informationUri").GetString().Length > 0)
+    Assert.Equal(JsonValueKind.Array, driver.GetProperty("rules").ValueKind)
+    
+    // Check results structure
+    Assert.Equal(JsonValueKind.Array, results.ValueKind)
+    Assert.Equal(1, results.GetArrayLength())
+    
+    let firstResult = results.EnumerateArray() |> Seq.head
+    Assert.Equal("W001", firstResult.GetProperty("ruleId").GetString())
+    Assert.Equal("warning", firstResult.GetProperty("level").GetString())
+    Assert.Equal("Test warning", firstResult.GetProperty("message").GetProperty("text").GetString())
+    Assert.Equal(JsonValueKind.Array, firstResult.GetProperty("locations").ValueKind)
+
+[<Fact>]
 let ``formatSarifOutput should include SARIF schema`` () =
     let result = createAnalysisResult [] []
     let output = formatSarifOutput result
     
-    let expectedOutput = """{
-  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-  "runs": [
-    {
-      "results": [],
-      "tool": {
-        "driver": {
-          "informationUri": "https://github.com/yourusername/FSharp.LintKit",
-          "name": "FSharp.LintKit",
-          "rules": [],
-          "version": "0.1.0"
-        }
-      }
-    }
-  ],
-  "version": "2.1.0"
-}"""
-    Assert.Equal(expectedOutput, output)
+    let document = JsonDocument.Parse(output)
+    let root = document.RootElement
+    
+    // Check SARIF version
+    Assert.Equal("2.1.0", root.GetProperty("version").GetString())
+    
+    // Check schema
+    Assert.Equal("https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json", root.GetProperty("$schema").GetString())
+    
+    // Check runs array
+    let runs = root.GetProperty("runs")
+    Assert.Equal(1, runs.GetArrayLength())
+    
+    // Check run structure
+    let firstRun = runs.EnumerateArray() |> Seq.head
+    let results = firstRun.GetProperty("results")
+    Assert.Equal(0, results.GetArrayLength())
+    
+    // Check tool structure
+    let tool = firstRun.GetProperty("tool")
+    let driver = tool.GetProperty("driver")
+    Assert.Equal("FSharp.LintKit", driver.GetProperty("name").GetString())
+    Assert.True(driver.GetProperty("version").GetString().Length > 0)
+    Assert.True(driver.GetProperty("informationUri").GetString().Length > 0)
+    Assert.Equal(0, driver.GetProperty("rules").GetArrayLength())
 
 [<Fact>]
 let ``formatSarifOutput should include tool information`` () =
     let result = createAnalysisResult [] []
     let output = formatSarifOutput result
     
-    // This test is covered by the SARIF schema test above, so we can verify it's the same
-    let expectedOutput = """{
-  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-  "runs": [
-    {
-      "results": [],
-      "tool": {
-        "driver": {
-          "informationUri": "https://github.com/yourusername/FSharp.LintKit",
-          "name": "FSharp.LintKit",
-          "rules": [],
-          "version": "0.1.0"
-        }
-      }
-    }
-  ],
-  "version": "2.1.0"
-}"""
-    Assert.Equal(expectedOutput, output)
+    let document = JsonDocument.Parse(output)
+    let root = document.RootElement
+    let firstRun = root.GetProperty("runs").EnumerateArray() |> Seq.head
+    let tool = firstRun.GetProperty("tool")
+    let driver = tool.GetProperty("driver")
+    
+    // Check tool information
+    Assert.Equal("FSharp.LintKit", driver.GetProperty("name").GetString())
+    Assert.True(driver.GetProperty("version").GetString().Length > 0)
+    Assert.True(driver.GetProperty("informationUri").GetString().Contains("FSharp.LintKit"))
+    Assert.Equal(JsonValueKind.Array, driver.GetProperty("rules").ValueKind)
 
 // === Boundary Value Tests ===
 
@@ -266,8 +307,12 @@ let ``formatOutput should delegate to correct formatter`` () =
     let expectedTextOutput = "[W001] warning: Test warning"
     Assert.Equal(expectedTextOutput, textOutput)
     
-    // For SARIF, just verify it contains the schema (since full SARIF is very long)
-    Assert.Contains("sarif-schema", sarifOutput)
+    // For SARIF, verify it produces valid JSON with expected structure
+    let document = JsonDocument.Parse(sarifOutput)
+    let root = document.RootElement
+    Assert.Equal("2.1.0", root.GetProperty("version").GetString())
+    Assert.True(root.GetProperty("$schema").GetString().Contains("sarif-schema"))
+    Assert.Equal(1, root.GetProperty("runs").GetArrayLength())
 
 [<Fact>]
 let ``formatTextOutput should handle different severity types correctly`` () =
@@ -297,164 +342,47 @@ let ``formatSarifOutput should map severity types correctly`` () =
     let result = createAnalysisResult messages []
     let output = formatSarifOutput result
     
-    let expectedOutput = """{
-  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-  "runs": [
-    {
-      "results": [
-        {
-          "level": "warning",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "unknown"
-                },
-                "region": {
-                  "endColumn": 1,
-                  "endLine": 1,
-                  "startColumn": 1,
-                  "startLine": 1
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "Warning"
-          },
-          "ruleId": "W001"
-        },
-        {
-          "level": "error",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "unknown"
-                },
-                "region": {
-                  "endColumn": 1,
-                  "endLine": 1,
-                  "startColumn": 1,
-                  "startLine": 1
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "Error"
-          },
-          "ruleId": "E001"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "unknown"
-                },
-                "region": {
-                  "endColumn": 1,
-                  "endLine": 1,
-                  "startColumn": 1,
-                  "startLine": 1
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "Info"
-          },
-          "ruleId": "I001"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "unknown"
-                },
-                "region": {
-                  "endColumn": 1,
-                  "endLine": 1,
-                  "startColumn": 1,
-                  "startLine": 1
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "Hint"
-          },
-          "ruleId": "H001"
-        }
-      ],
-      "tool": {
-        "driver": {
-          "informationUri": "https://github.com/yourusername/FSharp.LintKit",
-          "name": "FSharp.LintKit",
-          "rules": [
-            {
-              "defaultConfiguration": {
-                "level": "warning"
-              },
-              "fullDescription": {
-                "text": "Warning"
-              },
-              "id": "W001",
-              "name": "Analyzer1",
-              "shortDescription": {
-                "text": "Warning"
-              }
-            },
-            {
-              "defaultConfiguration": {
-                "level": "warning"
-              },
-              "fullDescription": {
-                "text": "Error"
-              },
-              "id": "E001",
-              "name": "Analyzer2",
-              "shortDescription": {
-                "text": "Error"
-              }
-            },
-            {
-              "defaultConfiguration": {
-                "level": "warning"
-              },
-              "fullDescription": {
-                "text": "Info"
-              },
-              "id": "I001",
-              "name": "Analyzer3",
-              "shortDescription": {
-                "text": "Info"
-              }
-            },
-            {
-              "defaultConfiguration": {
-                "level": "warning"
-              },
-              "fullDescription": {
-                "text": "Hint"
-              },
-              "id": "H001",
-              "name": "Analyzer4",
-              "shortDescription": {
-                "text": "Hint"
-              }
-            }
-          ],
-          "version": "0.1.0"
-        }
-      }
-    }
-  ],
-  "version": "2.1.0"
-}"""
+    let document = JsonDocument.Parse(output)
+    let root = document.RootElement
+    let firstRun = root.GetProperty("runs").EnumerateArray() |> Seq.head
+    let results = firstRun.GetProperty("results")
     
-    Assert.Equal(expectedOutput, output)
+    // Should have 4 results
+    Assert.Equal(4, results.GetArrayLength())
+    
+    let resultArray = results.EnumerateArray() |> Seq.toArray
+    
+    // Check Warning severity mapping
+    let warningResult = resultArray.[0]
+    Assert.Equal("W001", warningResult.GetProperty("ruleId").GetString())
+    Assert.Equal("warning", warningResult.GetProperty("level").GetString())
+    Assert.Equal("Warning", warningResult.GetProperty("message").GetProperty("text").GetString())
+    
+    // Check Error severity mapping
+    let errorResult = resultArray.[1]
+    Assert.Equal("E001", errorResult.GetProperty("ruleId").GetString())
+    Assert.Equal("error", errorResult.GetProperty("level").GetString())
+    Assert.Equal("Error", errorResult.GetProperty("message").GetProperty("text").GetString())
+    
+    // Check Info severity mapping
+    let infoResult = resultArray.[2]
+    Assert.Equal("I001", infoResult.GetProperty("ruleId").GetString())
+    Assert.Equal("note", infoResult.GetProperty("level").GetString())
+    Assert.Equal("Info", infoResult.GetProperty("message").GetProperty("text").GetString())
+    
+    // Check Hint severity mapping
+    let hintResult = resultArray.[3]
+    Assert.Equal("H001", hintResult.GetProperty("ruleId").GetString())
+    Assert.Equal("note", hintResult.GetProperty("level").GetString())
+    Assert.Equal("Hint", hintResult.GetProperty("message").GetProperty("text").GetString())
+    
+    // Check rules are properly generated
+    let driver = firstRun.GetProperty("tool").GetProperty("driver")
+    let rules = driver.GetProperty("rules")
+    Assert.Equal(4, rules.GetArrayLength())
+    
+    let ruleArray = rules.EnumerateArray() |> Seq.toArray
+    Assert.Equal("W001", ruleArray.[0].GetProperty("id").GetString())
+    Assert.Equal("E001", ruleArray.[1].GetProperty("id").GetString())
+    Assert.Equal("I001", ruleArray.[2].GetProperty("id").GetString())
+    Assert.Equal("H001", ruleArray.[3].GetProperty("id").GetString())

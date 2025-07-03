@@ -9,6 +9,37 @@ open FSharp.Analyzers.SDK
 open LintKit.CLI.Runner
 
 /// <summary>
+/// SARIF format constants
+/// </summary>
+module SarifConstants =
+    /// SARIF format version
+    let Version = "2.1.0"
+    /// SARIF JSON schema URL
+    let Schema = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+
+/// <summary>
+/// Tool information constants
+/// </summary>
+module ToolInfo =
+    let private assembly = System.Reflection.Assembly.GetExecutingAssembly()
+    
+    /// Tool name displayed in output
+    let Name = "FSharp.LintKit"
+    /// Current version of the tool (retrieved from assembly)
+    let Version = assembly.GetName().Version.ToString()
+    /// URL for tool documentation and information (retrieved from assembly metadata)
+    let InformationUri = 
+        let attrs = assembly.GetCustomAttributes(typeof<System.Reflection.AssemblyMetadataAttribute>, false)
+        let projectUrlAttr = 
+            attrs 
+            |> Array.tryFind (fun attr -> 
+                let metaAttr = attr :?> System.Reflection.AssemblyMetadataAttribute
+                metaAttr.Key = "ProjectUrl")
+        match projectUrlAttr with
+        | Some attr -> (attr :?> System.Reflection.AssemblyMetadataAttribute).Value
+        | None -> "https://github.com/flasksrw/FSharp.LintKit" // fallback
+
+/// <summary>
 /// Supported output formats for lint results
 /// </summary>
 type OutputFormat = 
@@ -114,15 +145,15 @@ let formatSarifOutput (result: AnalysisResult) =
         )
     
     let sarif = {|
-        version = "2.1.0"
-        ``$schema`` = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+        version = SarifConstants.Version
+        ``$schema`` = SarifConstants.Schema
         runs = [|
             {|
                 tool = {|
                     driver = {|
-                        name = "FSharp.LintKit"
-                        version = "0.1.0"
-                        informationUri = "https://github.com/yourusername/FSharp.LintKit"
+                        name = ToolInfo.Name
+                        version = ToolInfo.Version
+                        informationUri = ToolInfo.InformationUri
                         rules = rules |> List.toArray
                     |}
                 |}
