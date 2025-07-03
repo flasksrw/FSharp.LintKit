@@ -56,8 +56,23 @@ let main argv =
                         printfn "Loaded %d analyzer(s) from %s" loaded.Analyzers.Length loaded.Assembly.Location
                 
                 printfn "Running lint analysis with %d analyzer(s)..." (loadedAnalyzers |> List.sumBy (fun a -> a.Analyzers.Length))
-                printfn "Analysis completed successfully - no violations found"
-                0
+                
+                // Run analysis
+                let result = LintKit.CLI.Runner.runAnalysisOnTarget loadedAnalyzers target |> Async.RunSynchronously
+                
+                // Report errors
+                for error in result.Errors do
+                    eprintfn "Error: %s" error
+                
+                // Report results
+                if result.Messages.IsEmpty then
+                    if not quiet then printfn "Analysis completed successfully - no violations found"
+                    0
+                else
+                    if not quiet then printfn "Found %d violation(s):" result.Messages.Length
+                    for message in result.Messages do
+                        printfn "[%s] %s: %s" message.Code message.Type message.Message
+                    1
             
     with
     | :? ArguParseException as ex ->
