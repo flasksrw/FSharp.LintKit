@@ -1,14 +1,27 @@
+/// <summary>
+/// Module for loading F# analyzers from external DLL files
+/// </summary>
 module LintKit.CLI.AnalyzerLoader
 
 open System.IO
 open System.Reflection
 open FSharp.Analyzers.SDK
 
+/// <summary>
+/// Represents a loaded analyzer assembly containing one or more analyzers
+/// </summary>
 type LoadedAnalyzer = {
+    /// The loaded assembly containing analyzers
     Assembly: Assembly
+    /// List of analyzers found in the assembly
     Analyzers: Analyzer<CliContext> list
 }
 
+/// <summary>
+/// Loads analyzers from a single DLL file
+/// </summary>
+/// <param name="dllPath">Path to the DLL file containing analyzers</param>
+/// <returns>Result containing LoadedAnalyzer on success or error message on failure</returns>
 let loadAnalyzerFromPath (dllPath: string) =
     try
         if not (File.Exists(dllPath)) then
@@ -74,6 +87,11 @@ let loadAnalyzerFromPath (dllPath: string) =
     | ex ->
         Error $"Failed to load analyzer from {dllPath}: {ex.Message}"
 
+/// <summary>
+/// Loads analyzers from multiple DLL files
+/// </summary>
+/// <param name="dllPaths">List of paths to DLL files</param>
+/// <returns>Tuple containing list of successfully loaded analyzers and list of error messages</returns>
 let loadAnalyzersFromPaths (dllPaths: string list) =
     let results = dllPaths |> List.map loadAnalyzerFromPath
     

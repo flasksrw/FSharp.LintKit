@@ -1,6 +1,9 @@
 open System
 open Argu
 
+/// <summary>
+/// Command line arguments for the FSharp.LintKit CLI
+/// </summary>
 type Arguments =
     | [<Mandatory; Unique>] Analyzers of path: string list
     | [<Mandatory; Unique>] Target of path: string
@@ -17,6 +20,11 @@ type Arguments =
             | Verbose -> "Enable verbose output"
             | Quiet -> "Enable quiet output (minimal)"
 
+/// <summary>
+/// Main entry point for the FSharp.LintKit CLI application
+/// </summary>
+/// <param name="argv">Command line arguments</param>
+/// <returns>Exit code (0 for success, 1 for failure)</returns>
 [<EntryPoint>]
 let main argv =
     let parser = ArgumentParser.Create<Arguments>(programName = "fsharplintkit")

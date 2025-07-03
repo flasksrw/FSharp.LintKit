@@ -1,3 +1,6 @@
+/// <summary>
+/// Module for formatting and outputting lint analysis results
+/// </summary>
 module LintKit.CLI.Output
 
 open System
@@ -5,16 +8,33 @@ open System.Text.Json
 open FSharp.Analyzers.SDK
 open LintKit.CLI.Runner
 
+/// <summary>
+/// Supported output formats for lint results
+/// </summary>
 type OutputFormat = 
+    /// Plain text output format
     | Text
+    /// SARIF (Static Analysis Results Interchange Format) for CI/CD integration
     | Sarif
 
+/// <summary>
+/// Parses a string into an OutputFormat
+/// </summary>
+/// <param name="format">Format string ("text" or "sarif")</param>
+/// <returns>OutputFormat enum value</returns>
+/// <exception cref="System.InvalidOperationException">Thrown when format is not supported</exception>
 let parseOutputFormat (format: string) =
     match format.ToLowerInvariant() with
     | "text" -> Text
     | "sarif" -> Sarif
     | _ -> failwith $"Unknown output format: {format}. Supported formats: text, sarif"
 
+/// <summary>
+/// Formats analysis result as plain text
+/// </summary>
+/// <param name="result">The analysis result to format</param>
+/// <param name="verbose">Whether to include verbose output</param>
+/// <returns>Formatted text string</returns>
 let formatTextOutput (result: AnalysisResult) (verbose: bool) =
     let output = System.Text.StringBuilder()
     
@@ -46,6 +66,11 @@ let formatTextOutput (result: AnalysisResult) (verbose: bool) =
     
     output.ToString().TrimEnd()
 
+/// <summary>
+/// Formats analysis result as SARIF JSON
+/// </summary>
+/// <param name="result">The analysis result to format</param>
+/// <returns>SARIF-formatted JSON string</returns>
 let formatSarifOutput (result: AnalysisResult) =
     let rules = 
         result.Messages 
@@ -108,6 +133,13 @@ let formatSarifOutput (result: AnalysisResult) =
     
     JsonSerializer.Serialize(sarif, JsonSerializerOptions(WriteIndented = true))
 
+/// <summary>
+/// Formats analysis result according to the specified format
+/// </summary>
+/// <param name="format">Output format to use</param>
+/// <param name="result">The analysis result to format</param>
+/// <param name="verbose">Whether to include verbose output (ignored for SARIF)</param>
+/// <returns>Formatted output string</returns>
 let formatOutput (format: OutputFormat) (result: AnalysisResult) (verbose: bool) =
     match format with
     | Text -> formatTextOutput result verbose
