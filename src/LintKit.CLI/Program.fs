@@ -60,18 +60,17 @@ let main argv =
                 // Run analysis
                 let result = LintKit.CLI.Runner.runAnalysisOnTarget loadedAnalyzers target |> Async.RunSynchronously
                 
-                // Report errors
-                for error in result.Errors do
-                    eprintfn "Error: %s" error
+                // Format and output results
+                let outputFormat = LintKit.CLI.Output.parseOutputFormat format
+                let output = LintKit.CLI.Output.formatOutput outputFormat result (verbose && not quiet)
                 
-                // Report results
-                if result.Messages.IsEmpty then
-                    if not quiet then printfn "Analysis completed successfully - no violations found"
+                if not (System.String.IsNullOrWhiteSpace(output)) then
+                    printfn "%s" output
+                
+                // Return appropriate exit code
+                if result.Messages.IsEmpty && result.Errors.IsEmpty then
                     0
                 else
-                    if not quiet then printfn "Found %d violation(s):" result.Messages.Length
-                    for message in result.Messages do
-                        printfn "[%s] %s: %s" message.Code message.Type message.Message
                     1
             
     with
