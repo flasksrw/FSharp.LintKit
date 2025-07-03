@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="ForbiddenOpenAnalyzer.fs" />
     <Compile Include="FunctionApplicationDetector.fs" />
+    <Compile Include="SynExprPatterns.fs" />
   </ItemGroup>
 
   <ItemGroup>
