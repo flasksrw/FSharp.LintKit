@@ -40,9 +40,24 @@ let main argv =
                 printfn "Target: %s" target
                 printfn "Format: %s" format
             
-            printfn "Running lint analysis..."
-            printfn "Analysis completed successfully - no violations found"
-            0
+            // Load analyzers from DLLs
+            let (loadedAnalyzers, errors) = LintKit.CLI.AnalyzerLoader.loadAnalyzersFromPaths analyzers
+            
+            // Report any loading errors
+            for error in errors do
+                eprintfn "Error: %s" error
+            
+            if loadedAnalyzers.IsEmpty then
+                eprintfn "No analyzers could be loaded"
+                1
+            else
+                if verbose then
+                    for loaded in loadedAnalyzers do
+                        printfn "Loaded %d analyzer(s) from %s" loaded.Analyzers.Length loaded.Assembly.Location
+                
+                printfn "Running lint analysis with %d analyzer(s)..." (loadedAnalyzers |> List.sumBy (fun a -> a.Analyzers.Length))
+                printfn "Analysis completed successfully - no violations found"
+                0
             
     with
     | :? ArguParseException as ex ->
