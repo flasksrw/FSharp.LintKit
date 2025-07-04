@@ -2,7 +2,19 @@
 
 This is a custom F# analyzer project created with FSharp.LintKit templates.
 
-## AI-Driven Implementation
+## 🤖 FOR AI AGENTS - START HERE
+
+**You are an AI agent implementing F# analyzers. Follow these steps:**
+
+1. **Read the rule specifications** in `AI_RULE_IMPLEMENTATION.md`
+2. **Edit the existing files** (DO NOT create new files):
+   - `CustomAnalyzer.fs` - Replace TODO implementations with your analyzer logic
+   - `CustomAnalyzerTests.fs` - Add comprehensive test cases
+   - `MyCustomAnalyzer.fsproj` - Adjust if needed
+3. **Reference the working patterns** from LintKit.AnalyzerPatterns
+4. **Build and test** your implementation
+
+## 👨‍💻 FOR HUMAN DEVELOPERS
 
 This project is designed for AI-driven rule implementation:
 

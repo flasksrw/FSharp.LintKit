@@ -1,8 +1,12 @@
-# AI Agent Rule Implementation Instructions
+# 🤖 AI Agent Rule Implementation Instructions
 
-## SYSTEM OVERVIEW
+## START HERE - READ README.md FIRST
 
-You are an AI agent tasked with implementing F# custom analyzers for the FSharp.LintKit framework using FSharp.Analyzers.SDK. Your goal is to generate complete, production-ready analyzer implementations with comprehensive test suites based on human-provided rule specifications.
+**Before reading this document, read README.md in this directory** to understand the project structure and your role as an AI agent.
+
+## SYSTEM OVERVIEW - THIS IS FOR YOU (AI AGENT)
+
+**You are an AI agent** tasked with implementing F# custom analyzers for the FSharp.LintKit framework using FSharp.Analyzers.SDK. Your goal is to generate complete, production-ready analyzer implementations with comprehensive test suites based on human-provided rule specifications.
 
 FSharp.Analyzers.SDK is the official F# analyzer framework that provides:
 - Standardized analyzer interfaces and attributes
@@ -47,11 +51,35 @@ Each rule should be specified with:
 ## PATTERN REFERENCES
 
 ### Essential Resources
+**⚠️ CRITICAL: Always examine these resources first when implementing analyzers**
+
 Reference these existing implementations for patterns:
-- **Working Example**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns/SimpleAnalyzerExample.fs
-- **Working Tests**: https://github.com/flasksrw/FSharp.LintKit/tree/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
-- **AST Patterns**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns
-- **Template Structure**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer
+- **Working Example (REQUIRED)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns/SimpleAnalyzerExample.fs
+  - Complete TODO detection analyzer implementation
+  - Shows proper [<CliAnalyzer>] attribute usage
+  - Demonstrates correct FSharp.Analyzers.SDK patterns
+  - Contains error handling and async structure examples
+  - **Use this as your primary template for analyzer structure**
+
+- **Working Tests (REQUIRED)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
+  - Correct FSharp.Analyzers.SDK.Testing usage
+  - Critical pattern: `mkOptionsFromProject |> Async.AwaitTask`
+  - Shows proper async test structure and assertions
+  - **Use this as your primary template for test structure**
+
+- **AST Patterns (REFERENCE)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns
+  - **SynExprPatterns.fs**: Complete SynExpr pattern matching (expressions, function calls, if-then-else, match, etc.)
+  - **SynModuleDeclPatterns.fs**: Module declarations (let bindings, type definitions, open statements, nested modules)
+  - **SynPatPatterns.fs**: Pattern matching constructs (match patterns, let binding patterns)
+  - **SynTypePatterns.fs**: Type expressions and annotations
+  - **AttributeDetection.fs**: Custom attribute detection and analysis
+  - **NamingConventions.fs**: Identifier naming convention enforcement
+  - **Consult specific files when you encounter AST pattern matching errors**
+
+- **Template Structure (REFERENCE)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer
+  - Project file templates and structure
+  - Directory organization examples
+  - **Use for project setup and organization**
 
 ### Key Pattern Categories
 - **Working Analyzer**: SimpleAnalyzerExample.fs shows complete implementation with TODO detection
@@ -63,18 +91,33 @@ Reference these existing implementations for patterns:
 - **Attributes**: Custom attribute detection and analysis
 - **Naming**: Identifier naming convention enforcement
 
+## TEMPLATE PROJECT STRUCTURE
+
+**⚠️ IMPORTANT: This template already contains starter files - DO NOT create new files from scratch**
+
+The template project includes:
+- **MyCustomAnalyzer.fsproj** - Project file with FSharp.Analyzers.SDK reference (EDIT THIS)
+- **CustomAnalyzer.fs** - Main analyzer implementation template (EDIT THIS)
+- **CustomAnalyzerTests.fs** - Test file template (EDIT THIS)
+- **AI_RULE_IMPLEMENTATION.md** - This instruction file
+
+### DO NOT CREATE NEW FILES
+- **EDIT** the existing `CustomAnalyzer.fs` file instead of creating new analyzer files
+- **EDIT** the existing `CustomAnalyzerTests.fs` file instead of creating new test files
+- **EDIT** the existing `MyCustomAnalyzer.fsproj` file instead of creating new project files
+
 ## IMPLEMENTATION WORKFLOW
 
 ### Step 1: Project Setup
-1. Create project files with appropriate .NET target framework
-2. Add FSharp.Analyzers.SDK package reference
-3. Set up proper namespace and module structure
+1. **EDIT** the existing MyCustomAnalyzer.fsproj file to adjust target framework if needed
+2. The FSharp.Analyzers.SDK package reference is already included
+3. **EDIT** the namespace in CustomAnalyzer.fs to match your project name
 
 ### Step 2: Analyzer Implementation
-1. Create analyzer module with [<CliAnalyzer>] attribute
-2. Implement main analyzer function: `Analyzer<CliContext>`
-3. Add helper functions for AST traversal and pattern detection
-4. Include proper error handling and logging
+1. **EDIT** the existing `CustomAnalyzer.fs` file (analyzer module with [<CliAnalyzer>] attribute already exists)
+2. **REPLACE** the TODO implementations in the existing `customAnalyzer` function
+3. **EDIT** the helper functions `analyzeExpression` and `analyzeModuleDeclaration`
+4. The error handling structure is already included
 
 ### Step 3: Rule Logic
 1. Pattern match against relevant AST nodes
@@ -88,7 +131,7 @@ Reference these existing implementations for patterns:
    - Fixes: Suggested corrections (if applicable)
 
 ### Step 4: Test Suite
-Generate comprehensive tests covering:
+**EDIT** the existing `CustomAnalyzerTests.fs` file to add comprehensive tests covering:
 - **Positive Cases**: Rule correctly detects target patterns
 - **Negative Cases**: Rule does not trigger on valid code
 - **Boundary Cases**: Edge conditions and complex scenarios
@@ -127,23 +170,17 @@ Generate comprehensive tests covering:
 
 ## OUTPUT FORMAT
 
-### Project File Template
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.31.0" />
-  </ItemGroup>
-</Project>
-```
+### Editing Existing Files
+**EDIT** the provided template files rather than creating new ones:
+
+1. **MyCustomAnalyzer.fsproj** - Already contains the correct project structure
+2. **CustomAnalyzer.fs** - Contains the basic analyzer template with TODO markers
+3. **CustomAnalyzerTests.fs** - Contains the test file template structure
 
 ### Analyzer Structure Reference
 - Study **SimpleAnalyzerExample.fs** for complete analyzer implementation patterns
-- Follow established structure: helper functions, main analyzer with [<CliAnalyzer>] attribute
-- Use proper error handling and async structure as demonstrated in working examples
+- **EDIT** the existing `CustomAnalyzer.fs` following the established structure
+- The template already includes [<CliAnalyzer>] attribute and proper error handling structure
 
 ## QUALITY CHECKLIST
 

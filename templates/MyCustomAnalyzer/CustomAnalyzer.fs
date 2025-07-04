@@ -1,15 +1,16 @@
 /// <summary>
-/// Custom F# Analyzer Template
+/// Custom F# Analyzer Template - EDIT THIS FILE
 /// 
-/// **FOR AI AGENTS**: This is a minimal template. Follow these steps:
-/// 1. Study the working patterns in LintKit.AnalyzerPatterns project
-/// 2. Reference SimpleAnalyzerExample.fs for complete implementation structure
-/// 3. Use the rule specifications provided in AI_RULE_IMPLEMENTATION.md
-/// 4. Implement your analyzer following the established patterns
+/// **🤖 FOR AI AGENTS (THIS MEANS YOU)**: REPLACE the TODO implementations in this file with your analyzer logic:
+/// 1. EDIT the analyzeExpression function to implement your expression analysis
+/// 2. EDIT the analyzeModuleDeclaration function to implement your module analysis
+/// 3. EDIT the customAnalyzer function to process your specific rules
+/// 4. Study SimpleAnalyzerExample.fs for complete implementation patterns
+/// 5. Reference LintKit.AnalyzerPatterns files for specific AST pattern matching
 /// 
 /// **FOR HUMAN DEVELOPERS**: 
 /// - Fill out rule specifications in AI_RULE_IMPLEMENTATION.md
-/// - Use AI agent to generate complete implementation
+/// - Use AI agent to generate complete implementation by editing this file
 /// - Reference LintKit.AnalyzerPatterns for advanced AST patterns
 /// </summary>
 namespace MyCustomAnalyzer
@@ -21,13 +22,13 @@ open FSharp.Compiler.Text
 module CustomAnalyzer =
     
     /// <summary>
-    /// TODO: Implement your analysis logic here
+    /// EDIT THIS FUNCTION: Replace the empty list with your expression analysis logic
     /// 
-    /// **AI GUIDANCE**: 
+    /// **🤖 AI GUIDANCE (FOR YOU)**: 
     /// - Study SimpleAnalyzerExample.fs for the complete implementation pattern
-    /// - Use helper functions to analyze specific AST nodes
+    /// - Use SynExprPatterns.fs for all expression pattern matching examples
     /// - Follow exhaustive pattern matching without wildcards
-    /// - Include proper error handling
+    /// - Return Message list with rule violations found
     /// </summary>
     let private analyzeExpression (expr: SynExpr) : Message list =
         // TODO: Implement your expression analysis logic
@@ -35,11 +36,12 @@ module CustomAnalyzer =
         []
     
     /// <summary>
-    /// TODO: Implement module declaration analysis
+    /// EDIT THIS FUNCTION: Replace the empty list with your module declaration analysis logic
     /// 
     /// **AI GUIDANCE**:
     /// - Reference SynModuleDeclPatterns.fs for complete pattern matching
     /// - Handle let bindings, type definitions, nested modules, etc.
+    /// - Return Message list with rule violations found
     /// </summary>
     let private analyzeModuleDeclaration (decl: SynModuleDecl) : Message list =
         // TODO: Implement your module declaration analysis
@@ -47,12 +49,12 @@ module CustomAnalyzer =
         []
     
     /// <summary>
-    /// Main analyzer function - entry point for the analyzer
+    /// EDIT THIS FUNCTION: Replace the TODO comments with your analyzer logic
     /// 
     /// **AI GUIDANCE**:
     /// - Keep this structure: [<CliAnalyzer>] attribute, Analyzer<CliContext> type
-    /// - Use async computation expression
-    /// - Include try-catch for error handling
+    /// - EDIT the module processing logic to call your helper functions
+    /// - The async computation expression and error handling are already set up
     /// - Return messages as List<Message>
     /// </summary>
     [<CliAnalyzer>]
