@@ -112,7 +112,7 @@ let ``findProjectFiles should handle solution file`` () =
     if File.Exists(solutionFile) then
         let projectFiles = findProjectFiles solutionFile
         // Should find F# projects from the solution file
-        Assert.True(projectFiles.Length >= 2) // At least CLI and Analyzers projects
+        Assert.True(projectFiles.Length >= 2) // At least CLI and AnalyzerPatterns projects
         Assert.True(projectFiles |> List.forall (fun p -> p.EndsWith(".fsproj")))
     else
         // Skip test if solution file doesn't exist

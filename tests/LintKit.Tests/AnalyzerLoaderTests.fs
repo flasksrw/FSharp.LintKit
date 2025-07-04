@@ -42,7 +42,7 @@ let ``loadAnalyzerFromPath should load valid analyzer DLL`` () =
     // Use the built analyzer DLL
     let analyzerDllPath = Path.Combine(
         Directory.GetCurrentDirectory(), 
-        "..", "..", "..", "..", "src", "LintKit.Analyzers", "bin", "Debug", "net9.0", "LintKit.Analyzers.dll"
+        "..", "..", "..", "..", "src", "LintKit.AnalyzerPatterns", "bin", "Debug", "net9.0", "LintKit.AnalyzerPatterns.dll"
     )
     
     if File.Exists(analyzerDllPath) then
@@ -62,7 +62,7 @@ let ``loadAnalyzerFromPath should load valid analyzer DLL`` () =
 let ``loadAnalyzersFromPaths should handle mixed valid and invalid paths`` () =
     let validPath = Path.Combine(
         Directory.GetCurrentDirectory(), 
-        "..", "..", "..", "..", "src", "LintKit.Analyzers", "bin", "Debug", "net9.0", "LintKit.Analyzers.dll"
+        "..", "..", "..", "..", "src", "LintKit.AnalyzerPatterns", "bin", "Debug", "net9.0", "LintKit.AnalyzerPatterns.dll"
     )
     let invalidPath = "nonexistent.dll"
     
@@ -113,7 +113,7 @@ let ``loadAnalyzerFromPath should handle path with special characters`` () =
 let ``loadAnalyzerFromPath should return multiple analyzers if DLL contains multiple`` () =
     let validPath = Path.Combine(
         Directory.GetCurrentDirectory(), 
-        "..", "..", "..", "..", "src", "LintKit.Analyzers", "bin", "Debug", "net9.0", "LintKit.Analyzers.dll"
+        "..", "..", "..", "..", "src", "LintKit.AnalyzerPatterns", "bin", "Debug", "net9.0", "LintKit.AnalyzerPatterns.dll"
     )
     
     if File.Exists(validPath) then
@@ -121,8 +121,8 @@ let ``loadAnalyzerFromPath should return multiple analyzers if DLL contains mult
         
         match result with
         | Ok loadedAnalyzer -> 
-            // Our test DLL should contain exactly 2 analyzers
-            Assert.Equal(2, loadedAnalyzer.Analyzers.Length)
+            // Our test DLL should contain exactly 10 analyzers
+            Assert.Equal(10, loadedAnalyzer.Analyzers.Length)
         | Error msg -> 
             Assert.True(false, $"Expected success but got error: {msg}")
     else
@@ -133,7 +133,7 @@ let ``loadAnalyzerFromPath should return multiple analyzers if DLL contains mult
 let ``loadAnalyzersFromPaths should accumulate all analyzers from multiple DLLs`` () =
     let validPath = Path.Combine(
         Directory.GetCurrentDirectory(), 
-        "..", "..", "..", "..", "src", "LintKit.Analyzers", "bin", "Debug", "net9.0", "LintKit.Analyzers.dll"
+        "..", "..", "..", "..", "src", "LintKit.AnalyzerPatterns", "bin", "Debug", "net9.0", "LintKit.AnalyzerPatterns.dll"
     )
     
     if File.Exists(validPath) then
@@ -143,9 +143,9 @@ let ``loadAnalyzersFromPaths should accumulate all analyzers from multiple DLLs`
         Assert.Empty(errors)
         Assert.Equal(2, loaded.Length)
         
-        // Should have 4 total analyzers (2 from each DLL)
+        // Should have 20 total analyzers (10 from each DLL)
         let totalAnalyzers = loaded |> List.sumBy (fun l -> l.Analyzers.Length)
-        Assert.Equal(4, totalAnalyzers)
+        Assert.Equal(20, totalAnalyzers)
     else
         // Skip test if DLL not found
         ()
