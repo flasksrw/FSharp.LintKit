@@ -140,12 +140,13 @@ LICENSE
 The LintKit system is designed to enable full AI automation of custom rule implementation. Human developers specify their requirements, and AI agents generate complete analyzer implementations with tests.
 
 ### Components:
-1. **Human-Readable Rule Implementation Guide** (`docs/RULE_IMPLEMENTATION_GUIDE.md`)
+1. **Human-Readable Rule Implementation Guide** (`templates/RULE_IMPLEMENTATION_GUIDE_JA.md`, `templates/RULE_IMPLEMENTATION_GUIDE_EN.md`)
    - Step-by-step instructions for humans to understand the rule creation process
    - Examples of rule specifications and expected outputs
    - Best practices for rule design and testing
+   - Available in both Japanese and English
 
-2. **AI-Optimized Rule Implementation Instructions** (`docs/AI_RULE_IMPLEMENTATION.md`)
+2. **AI-Optimized Rule Implementation Instructions** (`templates/AI_RULE_IMPLEMENTATION.md`)
    - Machine-readable instructions for AI agents to implement rules
    - Standardized rule specification format
    - Template sections for human input (rule requirements list)
