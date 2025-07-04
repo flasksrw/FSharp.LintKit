@@ -13,6 +13,7 @@
     <Compile Include="SynPatPatterns.fs" />
     <Compile Include="SynTypePatterns.fs" />
     <Compile Include="AttributeDetection.fs" />
+    <Compile Include="TypeAnnotationChecker.fs" />
   </ItemGroup>
 
   <ItemGroup>
