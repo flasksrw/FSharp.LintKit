@@ -14,6 +14,7 @@
     <Compile Include="SynTypePatterns.fs" />
     <Compile Include="AttributeDetection.fs" />
     <Compile Include="TypeAnnotationChecker.fs" />
+    <Compile Include="SeverityGuide.fs" />
   </ItemGroup>
 
   <ItemGroup>
