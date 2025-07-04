@@ -178,6 +178,51 @@ The LintKit system is designed to enable full AI automation of custom rule imple
 
 ---
 
+## Distribution Strategy
+
+### NuGet Packages
+The project distributes as two complementary NuGet packages:
+
+1. **FSharp.LintKit** (.NET Global Tool)
+   - Installs command-line interface: `dotnet tool install -g FSharp.LintKit`
+   - Provides `dotnet fsharplintkit` command for executing custom analyzers
+   - Supports loading analyzer DLLs and running lint analysis
+
+2. **FSharp.LintKit.Templates** (Project Template Package)
+   - Installs project templates: `dotnet new install FSharp.LintKit.Templates`
+   - Provides `dotnet new fsharplintkit-analyzer` command for creating custom analyzer projects
+   - Includes AI instruction documents and working patterns
+
+### Complete Usage Workflow
+```bash
+# 1. Install CLI tool
+dotnet tool install -g FSharp.LintKit
+
+# 2. Install project templates
+dotnet new install FSharp.LintKit.Templates
+
+# 3. Create custom analyzer project
+dotnet new fsharplintkit-analyzer -n MyProjectRules
+
+# 4. Fill out rule specifications in AI_RULE_IMPLEMENTATION.md
+# 5. Use AI agent to generate complete analyzer implementation
+
+# 6. Build the analyzer
+dotnet build
+
+# 7. Run lint analysis with custom rules
+dotnet fsharplintkit --analyzers ./bin/Debug/net8.0/MyProjectRules.dll --target ./src
+```
+
+### Benefits of This Distribution Model
+- **Easy Installation**: Standard .NET tooling commands
+- **Automatic Updates**: `dotnet tool update` and template versioning
+- **Cross-Platform**: Works on Windows/macOS/Linux
+- **Enterprise-Friendly**: Can be hosted on internal NuGet feeds
+- **AI Integration Ready**: Templates include all necessary AI instruction documents
+
+---
+
 ## Future Extensions
 - Visual Studio Code Ionide integration
 - MSBuild task
