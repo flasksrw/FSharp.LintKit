@@ -15,6 +15,7 @@
     <Compile Include="AttributeDetection.fs" />
     <Compile Include="TypeAnnotationChecker.fs" />
     <Compile Include="SeverityGuide.fs" />
+    <Compile Include="NamingConventions.fs" />
   </ItemGroup>
 
   <ItemGroup>
