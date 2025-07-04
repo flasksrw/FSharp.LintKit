@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>MyCustomAnalyzer</AssemblyName>
+    <RootNamespace>MyCustomAnalyzer</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="CustomAnalyzer.fs" />
+    <Compile Include="CustomAnalyzerTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Analyzers.SDK" Version="0.31.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="FSharp.Analyzers.SDK.Testing" Version="0.31.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="AI_RULE_IMPLEMENTATION.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RULE_IMPLEMENTATION_GUIDE_JA.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RULE_IMPLEMENTATION_GUIDE_EN.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

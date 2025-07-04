@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "FSharp.LintKit Contributors",
+  "classifications": [
+    "F#",
+    "Analyzer",
+    "Code Quality",
+    "Linting"
+  ],
+  "identity": "FSharp.LintKit.CustomAnalyzer",
+  "name": "F# Custom Analyzer",
+  "shortName": "fsharplintkit-analyzer",
+  "description": "Creates a custom F# analyzer project with AI-driven implementation support",
+  "tags": {
+    "language": "F#",
+    "type": "project"
+  },
+  "sourceName": "MyCustomAnalyzer",
+  "preferNameDirectory": true,
+  "symbols": {
+    "ProjectName": {
+      "type": "parameter",
+      "description": "The name of the analyzer project",
+      "datatype": "string",
+      "defaultValue": "MyCustomAnalyzer",
+      "replaces": "MyCustomAnalyzer"
+    },
+    "AnalyzerNamespace": {
+      "type": "parameter", 
+      "description": "The root namespace for the analyzer",
+      "datatype": "string",
+      "defaultValue": "MyCustomAnalyzer",
+      "replaces": "MyCustomAnalyzer"
+    },
+    "TargetFramework": {
+      "type": "parameter",
+      "description": "The target framework for the project",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net8.0",
+          "description": ".NET 8.0"
+        },
+        {
+          "choice": "net9.0", 
+          "description": ".NET 9.0"
+        }
+      ],
+      "defaultValue": "net8.0",
+      "replaces": "net8.0"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "true",
+          "exclude": [
+            ".template.config/**/*"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "true",
+      "description": "Instructions for next steps",
+      "manualInstructions": [
+        {
+          "text": "Next steps:",
+          "condition": "true"
+        },
+        {
+          "text": "1. Fill out rule specifications in AI_RULE_IMPLEMENTATION.md",
+          "condition": "true"
+        },
+        {
+          "text": "2. Use AI agent to generate complete analyzer implementation",
+          "condition": "true"
+        },
+        {
+          "text": "3. Build: dotnet build",
+          "condition": "true"
+        },
+        {
+          "text": "4. Test: dotnet test", 
+          "condition": "true"
+        },
+        {
+          "text": "5. Use with LintKit: dotnet fsharplintkit --analyzers ./bin/Debug/{TargetFramework}/{ProjectName}.dll --target ./src",
+          "condition": "true"
+        }
+      ]
+    }
+  ]
+}
