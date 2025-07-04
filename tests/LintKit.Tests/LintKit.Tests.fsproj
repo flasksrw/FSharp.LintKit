@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\LintKit.CLI\LintKit.CLI.fsproj" />
-    <ProjectReference Include="..\..\src\LintKit.Analyzers\LintKit.Analyzers.fsproj" />
+    <ProjectReference Include="..\..\src\LintKit.AnalyzerPatterns\LintKit.AnalyzerPatterns.fsproj" />
   </ItemGroup>
 
 </Project>

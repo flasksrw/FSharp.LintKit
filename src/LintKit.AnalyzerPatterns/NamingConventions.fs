@@ -1,4 +1,4 @@
-namespace LintKit.Analyzers
+namespace LintKit.AnalyzerPatterns
 
 open FSharp.Analyzers.SDK
 open FSharp.Compiler.Syntax

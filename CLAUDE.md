@@ -69,10 +69,10 @@ This tool aims to serve as a guardrail for AI code generation in the future.
 
 ---
 
-## LintKit.Analyzers Project
+## LintKit.AnalyzerPatterns Project
 **Purpose**: AST Analysis Pattern Reference for AI Code Generation
 
-The LintKit.Analyzers project serves as a comprehensive reference implementation collection for F# AST analysis patterns. It is **NOT** a required dependency for LintKit.CLI, but rather a learning resource for developers (including AI agents) who want to create custom analyzers.
+The LintKit.AnalyzerPatterns project serves as a comprehensive reference implementation collection for F# AST analysis patterns. It is **NOT** a required dependency for LintKit.CLI, but rather a learning resource for developers (including AI agents) who want to create custom analyzers.
 
 ### Key Characteristics:
 - **AI-Optimized Code Examples**: All code includes detailed type annotations and explicit pattern matching for AI agents to learn from
@@ -90,9 +90,9 @@ The LintKit.Analyzers project serves as a comprehensive reference implementation
   - SynType patterns (type expressions and annotations)
 - **Attribute detection and analysis** (getting custom attributes from declarations)
 - **Type annotation checking** (detecting presence/absence of type annotations)
+- **Naming convention enforcement** (test prefixes, PascalCase, camelCase patterns)
 - **Severity usage guidelines** (Error/Warning/Info/Hint with concrete examples)
 - **Complex nested AST traversal patterns**
-- **Security and performance pattern detection**
 
 ### Usage:
 1. **For Human Developers**: Reference implementations to understand F# AST analysis
@@ -110,17 +110,17 @@ The LintKit.Analyzers project serves as a comprehensive reference implementation
       AnalyzerLoader.fs            # Load analyzers from DLLs
       Runner.fs                    # Actual lint execution logic
       Output.fs                    # SARIF/Text output processing
-    /LintKit.Analyzers             # AI-optimized AST analysis pattern reference
-      ForbiddenOpenRule.fs           # Basic: "Forbidden open System.IO" detection
+    /LintKit.AnalyzerPatterns      # AI-optimized AST analysis pattern reference
+      ForbiddenOpenAnalyzer.fs       # Basic: "Forbidden open System.IO" detection
       FunctionApplicationDetector.fs # Basic: Function application detection
-      [Future: SynExprPatterns.fs]     # Complete SynExpr pattern matching reference
-      [Future: SynModuleDeclPatterns.fs] # Complete SynModuleDecl pattern matching reference
-      [Future: SynPatPatterns.fs]      # Complete SynPat pattern matching reference
-      [Future: SynTypePatterns.fs]     # Complete SynType pattern matching reference
-      [Future: AttributeDetection.fs]  # Attribute detection and analysis examples
-      [Future: TypeAnnotationChecker.fs] # Type annotation presence checking
-      [Future: SeverityGuide.fs]       # Severity level usage examples
-      [Future: SecurityPatterns.fs]    # Security-focused analysis patterns
+      SynExprPatterns.fs             # Complete SynExpr pattern matching reference
+      SynModuleDeclPatterns.fs       # Complete SynModuleDecl pattern matching reference
+      SynPatPatterns.fs              # Complete SynPat pattern matching reference
+      SynTypePatterns.fs             # Complete SynType pattern matching reference
+      AttributeDetection.fs          # Attribute detection and analysis examples
+      TypeAnnotationChecker.fs       # Type annotation presence checking
+      NamingConventions.fs           # Naming convention enforcement patterns
+      SeverityGuide.fs               # Severity level usage examples (Error/Warning/Info/Hint)
   /templates                       # Templates for custom rules
     /MyCustomAnalyzer
       /MyCustomAnalyzer.fsproj
