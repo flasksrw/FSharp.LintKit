@@ -8,20 +8,22 @@ open FSharp.Compiler.Text
 /// Severity level usage examples and guidelines for F# analyzers
 /// 
 /// This module demonstrates proper usage of different severity levels:
-/// - Error: Critical issues that must be fixed (compilation breaks, security vulnerabilities)
+/// - Error: Critical issues that must be fixed (compilation breaks, runtime failures)
 /// - Warning: Important issues that should be addressed (potential bugs, deprecated usage)
 /// - Info: Suggestions for improvement (style, performance, maintainability)
+/// - Hint: Subtle suggestions for enhancement (advanced optimizations, best practices)
 /// 
 /// Educational purpose for AI agents:
 /// - When to use each severity level
 /// - How different severities affect CI/CD pipelines
 /// - Balancing between helpful guidance and noise reduction
-/// - Examples of escalation patterns (Info -> Warning -> Error)
+/// - Examples of escalation patterns (Hint -> Info -> Warning -> Error)
 /// 
 /// Best practices:
 /// - Use Error sparingly for actual breaking issues
 /// - Use Warning for likely problems that need attention
 /// - Use Info for style suggestions and optimizations
+/// - Use Hint for advanced tips that won't distract novice developers
 /// - Consider configurable severity levels for team preferences
 /// </summary>
 module SeverityGuide =
@@ -232,6 +234,75 @@ module SeverityGuide =
         messages |> Seq.toList
     
     /// <summary>
+    /// Analyzes expressions for Hint-level suggestions (subtle enhancements)
+    /// </summary>
+    /// <param name="expr">The expression to analyze</param>
+    /// <returns>List of Hint-level messages</returns>
+    let private analyzeForHints (expr: SynExpr) : Message list =
+        let messages = ResizeArray<Message>()
+        
+        match expr with
+        // HINT: Advanced functional programming patterns
+        | SynExpr.App(_, _, SynExpr.LongIdent(_, SynLongIdent(parts, _, _), _, _), _, _) ->
+            let fullPath = parts |> List.map (fun i -> i.idText) |> String.concat "."
+            
+            if fullPath.EndsWith("List.fold") then
+                messages.Add({
+                    Type = "Severity Guide Analyzer"
+                    Message = "Consider if List.reduce or List.scan would be more semantically appropriate than List.fold."
+                    Code = "SGH001"
+                    Severity = Severity.Hint
+                    Range = expr.Range
+                    Fixes = []
+                })
+            elif fullPath.Contains("List.map") then
+                messages.Add({
+                    Type = "Severity Guide Analyzer"
+                    Message = "For performance-critical code, consider using Array.map or Seq.map depending on usage patterns."
+                    Code = "SGH002"
+                    Severity = Severity.Hint
+                    Range = expr.Range
+                    Fixes = []
+                })
+        
+        // HINT: Advanced pattern matching suggestions
+        | SynExpr.Match(_, _, clauses, _, _) when clauses.Length = 2 ->
+            messages.Add({
+                Type = "Severity Guide Analyzer"
+                Message = "Two-clause match expression could potentially be simplified to if-then-else for readability."
+                Code = "SGH003"
+                Severity = Severity.Hint
+                Range = expr.Range
+                Fixes = []
+            })
+        
+        // HINT: Function composition opportunities
+        | SynExpr.App(_, _, SynExpr.App(_, _, _, _, _), _, _) ->
+            messages.Add({
+                Type = "Severity Guide Analyzer"
+                Message = "Consider function composition (>>) or piping (|>) for cleaner functional style."
+                Code = "SGH004"
+                Severity = Severity.Hint
+                Range = expr.Range
+                Fixes = []
+            })
+        
+        // HINT: Type annotation opportunities for learning
+        | SynExpr.Lambda(_, _, _, _, _, _, _) ->
+            messages.Add({
+                Type = "Severity Guide Analyzer"
+                Message = "Advanced: Consider explicit type annotations on lambdas for better IDE support and documentation."
+                Code = "SGH005"
+                Severity = Severity.Hint
+                Range = expr.Range
+                Fixes = []
+            })
+        
+        | _ -> ()
+        
+        messages |> Seq.toList
+    
+    /// <summary>
     /// Analyzes module declarations for severity-based issues
     /// </summary>
     /// <param name="decl">The module declaration to analyze</param>
@@ -322,14 +393,16 @@ module SeverityGuide =
                     let errorMessages = analyzeForErrors expr
                     let warningMessages = analyzeForWarnings expr
                     let infoMessages = analyzeForInfo expr
-                    errorMessages @ warningMessages @ infoMessages
+                    let hintMessages = analyzeForHints expr
+                    errorMessages @ warningMessages @ infoMessages @ hintMessages
             )
         
         | SynModuleDecl.Expr(expr, _) ->
             let errorMessages = analyzeForErrors expr
             let warningMessages = analyzeForWarnings expr
             let infoMessages = analyzeForInfo expr
-            errorMessages @ warningMessages @ infoMessages
+            let hintMessages = analyzeForHints expr
+            errorMessages @ warningMessages @ infoMessages @ hintMessages
         
         | _ -> []
     
@@ -337,12 +410,21 @@ module SeverityGuide =
     /// Demonstrates severity escalation patterns
     /// </summary>
     /// <param name="context">The analysis context</param>
-    /// <returns>Messages showing escalation from Info to Warning to Error</returns>
+    /// <returns>Messages showing escalation from Hint to Info to Warning to Error</returns>
     let private demonstrateSeverityEscalation (context: CliContext) : Message list =
         let messages = ResizeArray<Message>()
         
         // Example: Function complexity escalation
         // This would be based on actual analysis, but shown as example
+        messages.Add({
+            Type = "Severity Guide Analyzer"
+            Message = "Example Hint: Function could benefit from extracted helper functions for better composition."
+            Code = "SGH006"
+            Severity = Severity.Hint
+            Range = Range.Zero
+            Fixes = []
+        })
+        
         messages.Add({
             Type = "Severity Guide Analyzer"
             Message = "Example Info: Function has moderate complexity (5-10 branches). Consider refactoring for clarity."
