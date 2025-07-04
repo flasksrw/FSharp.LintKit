@@ -48,10 +48,14 @@ Each rule should be specified with:
 
 ### Essential Resources
 Reference these existing implementations for patterns:
+- **Working Example**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns/SimpleAnalyzerExample.fs
+- **Working Tests**: https://github.com/flasksrw/FSharp.LintKit/tree/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
 - **AST Patterns**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns
 - **Template Structure**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer
 
 ### Key Pattern Categories
+- **Working Analyzer**: SimpleAnalyzerExample.fs shows complete implementation with TODO detection
+- **Working Tests**: SimpleAnalyzerExampleTests.fs shows correct FSharp.Analyzers.SDK.Testing usage
 - **SynExpr**: All F# expression patterns with complete type matching
 - **SynModuleDecl**: Module-level declarations (let, type, open, nested modules)
 - **SynPat**: Pattern matching constructs in match expressions and let bindings
@@ -93,11 +97,17 @@ Generate comprehensive tests covering:
 
 ## TEST REQUIREMENTS
 
+### Test Implementation Reference
+- Study **SimpleAnalyzerExampleTests.fs** for the correct FSharp.Analyzers.SDK.Testing patterns
+- Critical pattern: `mkOptionsFromProject |> Async.AwaitTask` for proper async setup
+- Follow the established test structure with async blocks and proper assertions
+
 ### Test Categories
 1. **Basic Functionality**
-   - Rule detects intended patterns
-   - Rule ignores valid code
+   - Rule detects intended patterns (positive test)
+   - Rule ignores valid code (negative test)
    - Message content and codes are correct
+   - Multiple instances in same file
 
 2. **Edge Cases**
    - Empty files and modules
@@ -115,17 +125,6 @@ Generate comprehensive tests covering:
    - Rule interactions
    - Performance under load
 
-### Test Structure
-```fsharp
-[<Fact>]
-let ``Should detect [pattern] in [context]`` () =
-    let code = """
-    [F# code example]
-    """
-    let results = runAnalyzer code
-    // Assertions for expected behavior
-```
-
 ## OUTPUT FORMAT
 
 ### Project File Template
@@ -141,27 +140,10 @@ let ``Should detect [pattern] in [context]`` () =
 </Project>
 ```
 
-### Analyzer Structure Template
-```fsharp
-namespace [ProjectName]
-
-open FSharp.Analyzers.SDK
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-
-module [AnalyzerName] =
-    
-    let private analyze[Component] (node: [SynType]) : Message list =
-        // Implementation with exhaustive pattern matching
-        
-    [<CliAnalyzer>]
-    let [analyzerName]: Analyzer<CliContext> =
-        fun (context: CliContext) ->
-            async {
-                // Main analysis logic
-                return messages |> Seq.toList
-            }
-```
+### Analyzer Structure Reference
+- Study **SimpleAnalyzerExample.fs** for complete analyzer implementation patterns
+- Follow established structure: helper functions, main analyzer with [<CliAnalyzer>] attribute
+- Use proper error handling and async structure as demonstrated in working examples
 
 ## QUALITY CHECKLIST
 

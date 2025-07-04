@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="ForbiddenOpenAnalyzer.fs" />
-    <Compile Include="FunctionApplicationDetector.fs" />
+    <Compile Include="SimpleAnalyzerExample.fs" />
     <Compile Include="SynExprPatterns.fs" />
     <Compile Include="SynModuleDeclPatterns.fs" />
     <Compile Include="SynPatPatterns.fs" />

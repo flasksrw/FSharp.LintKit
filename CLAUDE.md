@@ -81,8 +81,8 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
 - **Self-Contained**: Each analyzer file is a complete, working example that can be copied and modified
 
 ### Sample Implementation Areas:
-- **Basic pattern detection** (open statements, identifiers)
-- **Expression analysis** (function applications, lambdas, let bindings)
+- **Working Analyzer Example** (SimpleAnalyzerExample.fs - TODO detection with full implementation)
+- **Working Test Patterns** (SimpleAnalyzerExampleTests.fs - correct FSharp.Analyzers.SDK.Testing usage)
 - **Complete AST pattern matching references**:
   - SynExpr patterns (all expression types with detailed type annotations)
   - SynModuleDecl patterns (module declarations: let, type, open, nested modules)
@@ -99,6 +99,11 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
 2. **For AI Agents**: Concrete patterns to copy and adapt for new analyzer rules
 3. **For Learning**: Progressive examples from simple to complex AST operations
 
+### Working Implementation Examples:
+- **SimpleAnalyzerExample.fs**: Complete TODO detection analyzer with proper error handling
+- **SimpleAnalyzerExampleTests.fs**: Working test suite using correct FSharp.Analyzers.SDK.Testing patterns
+- **Critical Testing Pattern**: `mkOptionsFromProject "net9.0" [] |> Async.AwaitTask` for proper async setup
+
 ---
 
 ## Project Structure
@@ -111,8 +116,7 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
       Runner.fs                    # Actual lint execution logic
       Output.fs                    # SARIF/Text output processing
     /LintKit.AnalyzerPatterns      # AI-optimized AST analysis pattern reference
-      ForbiddenOpenAnalyzer.fs       # Basic: "Forbidden open System.IO" detection
-      FunctionApplicationDetector.fs # Basic: Function application detection
+      SimpleAnalyzerExample.fs       # Working analyzer example with TODO detection
       SynExprPatterns.fs             # Complete SynExpr pattern matching reference
       SynModuleDeclPatterns.fs       # Complete SynModuleDecl pattern matching reference
       SynPatPatterns.fs              # Complete SynPat pattern matching reference
