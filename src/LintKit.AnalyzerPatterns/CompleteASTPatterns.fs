@@ -31,6 +31,16 @@ module CompleteASTPatterns =
     let trd (_, _, a) = a
     let createListAnalyzer<'a> (analyzer: 'a -> list<Message> -> list<Message>) = flip (List.fold (flip analyzer))
     let createOptionAnalyzer<'a> (analyzer: 'a -> list<Message> -> list<Message>) = Option.map analyzer >> Option.defaultValue id
+    
+    /// <summary>
+    /// Extracts all SynAttribute from SynAttributes
+    /// SynAttributes -> List<SynAttributeList> -> List<SynAttribute>
+    /// </summary>
+    /// <param name="attributes">The SynAttributes to extract attributes from</param>
+    /// <returns>List of all SynAttribute from all attribute lists</returns>
+    let extractAttributes (attributes: SynAttributes) : SynAttribute list =
+        attributes 
+        |> List.collect (fun attrList -> attrList.Attributes)
 
     /// <summary>
     /// Creates an informational message for a type visit
@@ -121,6 +131,7 @@ module CompleteASTPatterns =
     /// <returns>List of analysis messages for any issues found</returns>
     let rec analyzeTypeAcc (synType: SynType) (acc: Message list) : Message list =
         let analyzeTypes = createListAnalyzer analyzeTypeAcc
+        let analyzeExpressions = createListAnalyzer analyzeExpressionAcc
         
         match synType with
         
@@ -266,6 +277,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
 
             acc
+            |> analyzeExpressions (extractAttributes attributes |> List.map (fun attr -> attr.ArgExpr))
             |> analyzeTypeAcc usedType
         
         | SynType.Or(lhsType: SynType, rhsType: SynType, range: range, trivia: SynTypeOrTrivia) ->
@@ -299,8 +311,16 @@ module CompleteASTPatterns =
     and analyzePatternAcc (pat: SynPat) (acc: Message list) : Message list =
         let analyzePatterns = createListAnalyzer analyzePatternAcc
         let analyzeArgPats (argPats: SynArgPats) (acc: Message list) : Message list = 
-            // TODO: Implement proper SynArgPats analysis
-            acc
+            match argPats with
+            | SynArgPats.Pats(pats: SynPat list) ->
+                acc
+                |> analyzePatterns pats
+            | SynArgPats.NamePatPairs(pats: (Ident * range option * SynPat) list, range: range, trivia: SynArgPatsNamePatPairsTrivia) ->
+                let nodeMsg = createPatternVisitMessage "SynArgPats.NamePatPairs" range $"named pattern pairs (count: {pats.Length})"
+                let acc = nodeMsg :: acc
+                
+                acc
+                |> analyzePatterns (pats |> List.map trd)
         
         match pat with
         
@@ -1086,7 +1106,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
             
             acc
-            |> analyzeExpressions (attributes |> List.collect (fun attrList -> attrList.Attributes) |> List.map (fun attr -> attr.ArgExpr))
+            |> analyzeExpressions (extractAttributes attributes |> List.map (fun attr -> attr.ArgExpr))
         
         // === HASH DIRECTIVES ===
         | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
@@ -1148,7 +1168,7 @@ module CompleteASTPatterns =
         match binding with
         | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
             acc
-            |> analyzeExpressions (attrs |> List.collect (fun attrList -> attrList.Attributes |> List.map (fun attr -> attr.ArgExpr)))
+            |> analyzeExpressions (extractAttributes attrs |> List.map (fun attr -> attr.ArgExpr))
             |> analyzePatternAcc headPat
             |> analyzeOptionalReturnInfo returnInfo
             |> analyzeExpressionAcc expr
@@ -1183,7 +1203,7 @@ module CompleteASTPatterns =
         | SynBindingReturnInfo(typeName: SynType, range: range, attributes: SynAttributes, trivia: SynBindingReturnInfoTrivia) ->
             acc
             |> analyzeTypeAcc typeName
-            |> analyzeExpressions (attributes |> List.collect (fun attrList -> attrList.Attributes |> List.map (fun attr -> attr.ArgExpr)))
+            |> analyzeExpressions (extractAttributes attributes |> List.map (fun attr -> attr.ArgExpr))
     
     /// <summary>
     /// Sample analyzer that uses the complete SynExpr pattern matching
