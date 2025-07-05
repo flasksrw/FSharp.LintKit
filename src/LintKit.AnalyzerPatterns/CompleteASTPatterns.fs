@@ -91,136 +91,256 @@ module CompleteASTPatterns =
         }
 
     /// <summary>
-    /// Analyzes a SynType with complete pattern matching
+    /// Analyzes a SynType with complete pattern matching using accumulator pattern
     /// **AI CRITICAL PATTERN**: This covers ALL SynType cases - use this as your template
     /// </summary>
     /// <param name="synType">The F# type syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzeType (synType: SynType) : Message list =
+    let rec analyzeTypeAcc (synType: SynType) (acc: Message list) : Message list =
         match synType with
         
         // === LONG IDENTIFIER TYPES ===
         | SynType.LongIdent(longDotId: SynLongIdent) ->
             let nodeMsg = createTypeVisitMessage "SynType.LongIdent" longDotId.Range "long identifier type"
-            [nodeMsg]
+            nodeMsg :: acc
         
         // === TYPE APPLICATIONS ===
         | SynType.App(typeName: SynType, lessRange: range option, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, isPostfix: bool, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.App" range $"type application (postfix: {isPostfix}, args: {typeArgs.Length})"
-            let baseTypeMessages = analyzeType typeName
-            let typeArgMessages = typeArgs |> List.collect analyzeType
-            nodeMsg :: (baseTypeMessages @ typeArgMessages)
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzeTypeAcc typeName acc'
+            typeArgs |> List.fold (fun accum arg -> analyzeTypeAcc arg accum) acc''
         
         // === FUNCTION TYPES ===
         | SynType.Fun(argType: SynType, returnType: SynType, range: range, trivia: SynTypeFunTrivia) ->
             let nodeMsg = createTypeVisitMessage "SynType.Fun" range "function type"
-            let argMessages = analyzeType argType
-            let returnMessages = analyzeType returnType
-            nodeMsg :: (argMessages @ returnMessages)
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzeTypeAcc argType acc'
+            analyzeTypeAcc returnType acc''
         
         // === TUPLE TYPES ===
         | SynType.Tuple(isStruct: bool, path: SynTupleTypeSegment list, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.Tuple" range $"tuple type (struct: {isStruct}, segments: {path.Length})"
-            let elementMessages = 
-                path
-                |> List.collect (fun segment ->
-                    match segment with
-                    | SynTupleTypeSegment.Type(synType) -> analyzeType synType
-                    | SynTupleTypeSegment.Star(_) -> []
-                    | SynTupleTypeSegment.Slash(_) -> [])
-            nodeMsg :: elementMessages
+            let acc' = nodeMsg :: acc
+            path |> List.fold (fun accum segment ->
+                match segment with
+                | SynTupleTypeSegment.Type(synType) -> analyzeTypeAcc synType accum
+                | SynTupleTypeSegment.Star(_) -> accum
+                | SynTupleTypeSegment.Slash(_) -> accum) acc'
         
         // === ARRAY TYPES ===
         | SynType.Array(rank: int, elementType: SynType, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.Array" range $"array type (rank: {rank})"
-            let elementMessages = analyzeType elementType
-            nodeMsg :: elementMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc elementType acc'
         
         // === TYPE VARIABLES ===
         | SynType.Var(typar: SynTypar, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.Var" range "type variable"
-            [nodeMsg]
+            nodeMsg :: acc
         
         // === ANONYMOUS RECORD TYPES ===
         | SynType.AnonRecd(isStruct: bool, fields: (Ident * SynType) list, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.AnonRecd" range $"anonymous record (struct: {isStruct}, fields: {fields.Length})"
-            let fieldMessages = fields |> List.collect (fun (_, fieldType) -> analyzeType fieldType)
-            nodeMsg :: fieldMessages
+            let acc' = nodeMsg :: acc
+            fields |> List.fold (fun accum (_, fieldType) -> analyzeTypeAcc fieldType accum) acc'
         
         // === LONG IDENTIFIER APP ===
         | SynType.LongIdentApp(typeName: SynType, longDotId: SynLongIdent, lessRange: range option, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.LongIdentApp" range $"long identifier application (args: {typeArgs.Length})"
-            let baseTypeMessages = analyzeType typeName
-            let typeArgMessages = typeArgs |> List.collect analyzeType
-            nodeMsg :: (baseTypeMessages @ typeArgMessages)
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzeTypeAcc typeName acc'
+            typeArgs |> List.fold (fun accum arg -> analyzeTypeAcc arg accum) acc''
         
         // === OTHER TYPE PATTERNS ===
         | SynType.Anon(range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.Anon" range "anonymous type"
-            [nodeMsg]
+            nodeMsg :: acc
         
         | SynType.StaticConstant(constant: SynConst, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.StaticConstant" range "static constant in type"
-            [nodeMsg]
+            nodeMsg :: acc
         
         | SynType.StaticConstantExpr(expr: SynExpr, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.StaticConstantExpr" range "static constant expression"
-            [nodeMsg]
+            nodeMsg :: acc
         
         | SynType.StaticConstantNamed(ident: SynType, value: SynType, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.StaticConstantNamed" range "named static constant"
-            let identMessages = analyzeType ident
-            let valueMessages = analyzeType value
-            nodeMsg :: (identMessages @ valueMessages)
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzeTypeAcc ident acc'
+            analyzeTypeAcc value acc''
         
         | SynType.WithGlobalConstraints(typeName: SynType, constraints: SynTypeConstraint list, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.WithGlobalConstraints" range $"type with constraints (count: {constraints.Length})"
-            let typeMessages = analyzeType typeName
-            nodeMsg :: typeMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc typeName acc'
         
         | SynType.HashConstraint(innerType: SynType, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.HashConstraint" range "hash constraint (flexible type)"
-            let innerMessages = analyzeType innerType
-            nodeMsg :: innerMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc innerType acc'
         
         | SynType.MeasurePower(baseMeasure: SynType, exponent: SynRationalConst, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.MeasurePower" range "measure power"
-            let baseMessages = analyzeType baseMeasure
-            nodeMsg :: baseMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc baseMeasure acc'
         
         | SynType.StaticConstantNull(range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.StaticConstantNull" range "static null constant"
-            [nodeMsg]
+            nodeMsg :: acc
         
         | SynType.Paren(innerType: SynType, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.Paren" range "parenthesized type"
-            let innerMessages = analyzeType innerType
-            nodeMsg :: innerMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc innerType acc'
         
         | SynType.WithNull(innerType: SynType, ambivalent: bool, range: range, trivia: SynTypeWithNullTrivia) ->
             let nodeMsg = createTypeVisitMessage "SynType.WithNull" range $"nullable type (ambivalent: {ambivalent})"
-            let innerMessages = analyzeType innerType
-            nodeMsg :: innerMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc innerType acc'
         
         | SynType.SignatureParameter(attributes: SynAttributes, optional: bool, paramId: Ident option, usedType: SynType, range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.SignatureParameter" range $"signature parameter (optional: {optional})"
-            let typeMessages = analyzeType usedType
-            nodeMsg :: typeMessages
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc usedType acc'
         
         | SynType.Or(lhsType: SynType, rhsType: SynType, range: range, trivia: SynTypeOrTrivia) ->
             let nodeMsg = createTypeVisitMessage "SynType.Or" range "or type"
-            let lhsMessages = analyzeType lhsType
-            let rhsMessages = analyzeType rhsType
-            nodeMsg :: (lhsMessages @ rhsMessages)
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzeTypeAcc lhsType acc'
+            analyzeTypeAcc rhsType acc''
         
         | SynType.Intersection(typar: SynTypar option, types: SynType list, range: range, trivia: SynTyparDeclTrivia) ->
             let nodeMsg = createTypeVisitMessage "SynType.Intersection" range $"intersection type (types: {types.Length})"
-            let typeMessages = types |> List.collect analyzeType
-            nodeMsg :: typeMessages
+            let acc' = nodeMsg :: acc
+            types |> List.fold (fun accum t -> analyzeTypeAcc t accum) acc'
         
         | SynType.FromParseError(range: range) ->
             let nodeMsg = createTypeVisitMessage "SynType.FromParseError" range "type from parse error"
-            [nodeMsg]
+            nodeMsg :: acc
+    
+    /// <summary>
+    /// Analyzes a SynType with complete pattern matching
+    /// **AI CRITICAL PATTERN**: This covers ALL SynType cases - use this as your template
+    /// </summary>
+    /// <param name="synType">The F# type syntax tree node to analyze</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    let analyzeType (synType: SynType) : Message list =
+        analyzeTypeAcc synType []
+        |> List.rev  // Reverse to get messages in traversal order
+    
+    /// <summary>
+    /// Analyzes a SynPat with complete pattern matching using accumulator pattern
+    /// **AI CRITICAL PATTERN**: This covers ALL SynPat cases - use this as your template
+    /// </summary>
+    /// <param name="pat">The F# pattern syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    let rec analyzePatternAcc (pat: SynPat) (acc: Message list) : Message list =
+        match pat with
+        
+        // === BASIC PATTERNS ===
+        | SynPat.Const(constant: SynConst, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Const" range $"constant pattern: {constant}"
+            nodeMsg :: acc
+        
+        | SynPat.Wild(range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Wild" range "wildcard pattern (_)"
+            nodeMsg :: acc
+        
+        | SynPat.Named(ident: SynIdent, isThisVal: bool, accessibility: SynAccess option, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Named" range $"named pattern (isThis: {isThisVal})"
+            nodeMsg :: acc
+        
+        | SynPat.Typed(pat: SynPat, targetType: SynType, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Typed" range "typed pattern"
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzeTypeAcc targetType acc'
+            analyzePatternAcc pat acc''
+        
+        // === COLLECTION PATTERNS ===
+        | SynPat.Tuple(isStruct: bool, elementPats: SynPat list, commaRanges: range list, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Tuple" range $"tuple pattern (struct: {isStruct}, elements: {elementPats.Length})"
+            let acc' = nodeMsg :: acc
+            elementPats |> List.fold (fun accum pat -> analyzePatternAcc pat accum) acc'
+        
+        | SynPat.ArrayOrList(isArray: bool, elementPats: SynPat list, range: range) ->
+            let patType = if isArray then "array" else "list"
+            let nodeMsg = createPatternVisitMessage "SynPat.ArrayOrList" range $"{patType} pattern (elements: {elementPats.Length})"
+            let acc' = nodeMsg :: acc
+            elementPats |> List.fold (fun accum pat -> analyzePatternAcc pat accum) acc'
+        
+        | SynPat.Record(fieldPats: ((LongIdent * Ident) * range option * SynPat) list, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Record" range $"record pattern (fields: {fieldPats.Length})"
+            let acc' = nodeMsg :: acc
+            fieldPats |> List.fold (fun accum (_, _, pat) -> analyzePatternAcc pat accum) acc'
+        
+        // === IDENTIFIER PATTERNS ===
+        | SynPat.LongIdent(longDotId: SynLongIdent, extraId: Ident option, typarDecls: SynValTyparDecls option, argPats: SynArgPats, accessibility: SynAccess option, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.LongIdent" range "long identifier pattern"
+            nodeMsg :: acc
+        
+        | SynPat.Paren(pat: SynPat, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Paren" range "parenthesized pattern"
+            let acc' = nodeMsg :: acc
+            analyzePatternAcc pat acc'
+        
+        // === ADVANCED PATTERNS ===
+        | SynPat.Attrib(pat: SynPat, attributes: SynAttributes, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Attrib" range $"attributed pattern (attributes: {attributes.Length})"
+            let acc' = nodeMsg :: acc
+            analyzePatternAcc pat acc'
+        
+        | SynPat.Or(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Or" range "or pattern (|)"
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzePatternAcc lhsPat acc'
+            analyzePatternAcc rhsPat acc''
+        
+        | SynPat.ListCons(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia: SynPatListConsTrivia) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.ListCons" range "list cons pattern (::)"
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzePatternAcc lhsPat acc'
+            analyzePatternAcc rhsPat acc''
+        
+        | SynPat.Ands(pats: SynPat list, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Ands" range $"and pattern (&) with {pats.Length} patterns"
+            let acc' = nodeMsg :: acc
+            pats |> List.fold (fun accum pat -> analyzePatternAcc pat accum) acc'
+        
+        | SynPat.As(lhsPat: SynPat, rhsPat: SynPat, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.As" range "as pattern"
+            let acc' = nodeMsg :: acc
+            let acc'' = analyzePatternAcc lhsPat acc'
+            analyzePatternAcc rhsPat acc''
+        
+        | SynPat.Null(range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.Null" range "null pattern"
+            nodeMsg :: acc
+        
+        | SynPat.OptionalVal(ident: Ident, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.OptionalVal" range "optional value pattern"
+            nodeMsg :: acc
+        
+        | SynPat.IsInst(targetType: SynType, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.IsInst" range "type test pattern (:? type)"
+            let acc' = nodeMsg :: acc
+            analyzeTypeAcc targetType acc'
+        
+        | SynPat.QuoteExpr(expr: SynExpr, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.QuoteExpr" range "quoted expression pattern"
+            nodeMsg :: acc
+        
+        | SynPat.InstanceMember(thisId: Ident, memberId: Ident, toolId: Ident option, accessibility: SynAccess option, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.InstanceMember" range "instance member pattern"
+            nodeMsg :: acc
+        
+        | SynPat.FromParseError(pat: SynPat, range: range) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.FromParseError" range "pattern from parse error"
+            let acc' = nodeMsg :: acc
+            analyzePatternAcc pat acc'
     
     /// <summary>
     /// Analyzes a SynPat with complete pattern matching
@@ -228,107 +348,9 @@ module CompleteASTPatterns =
     /// </summary>
     /// <param name="pat">The F# pattern syntax tree node to analyze</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzePattern (pat: SynPat) : Message list =
-        match pat with
-        
-        // === BASIC PATTERNS ===
-        | SynPat.Const(constant: SynConst, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Const" range $"constant pattern: {constant}"
-            [nodeMsg]
-        
-        | SynPat.Wild(range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Wild" range "wildcard pattern (_)"
-            [nodeMsg]
-        
-        | SynPat.Named(ident: SynIdent, isThisVal: bool, accessibility: SynAccess option, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Named" range $"named pattern (isThis: {isThisVal})"
-            [nodeMsg]
-        
-        | SynPat.Typed(pat: SynPat, targetType: SynType, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Typed" range "typed pattern"
-            let patMessages = analyzePattern pat
-            nodeMsg :: patMessages
-        
-        // === COLLECTION PATTERNS ===
-        | SynPat.Tuple(isStruct: bool, elementPats: SynPat list, commaRanges: range list, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Tuple" range $"tuple pattern (struct: {isStruct}, elements: {elementPats.Length})"
-            let patMessages = elementPats |> List.collect analyzePattern
-            nodeMsg :: patMessages
-        
-        | SynPat.ArrayOrList(isArray: bool, elementPats: SynPat list, range: range) ->
-            let patType = if isArray then "array" else "list"
-            let nodeMsg = createPatternVisitMessage "SynPat.ArrayOrList" range $"{patType} pattern (elements: {elementPats.Length})"
-            let patMessages = elementPats |> List.collect analyzePattern
-            nodeMsg :: patMessages
-        
-        | SynPat.Record(fieldPats: ((LongIdent * Ident) * range option * SynPat) list, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Record" range $"record pattern (fields: {fieldPats.Length})"
-            let patMessages = fieldPats |> List.collect (fun (_, _, pat) -> analyzePattern pat)
-            nodeMsg :: patMessages
-        
-        // === IDENTIFIER PATTERNS ===
-        | SynPat.LongIdent(longDotId: SynLongIdent, extraId: Ident option, typarDecls: SynValTyparDecls option, argPats: SynArgPats, accessibility: SynAccess option, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.LongIdent" range "long identifier pattern"
-            [nodeMsg]
-        
-        | SynPat.Paren(pat: SynPat, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Paren" range "parenthesized pattern"
-            let patMessages = analyzePattern pat
-            nodeMsg :: patMessages
-        
-        // === ADVANCED PATTERNS ===
-        | SynPat.Attrib(pat: SynPat, attributes: SynAttributes, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Attrib" range $"attributed pattern (attributes: {attributes.Length})"
-            let patMessages = analyzePattern pat
-            nodeMsg :: patMessages
-        
-        | SynPat.Or(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Or" range "or pattern (|)"
-            let lhsMessages = analyzePattern lhsPat
-            let rhsMessages = analyzePattern rhsPat
-            nodeMsg :: (lhsMessages @ rhsMessages)
-        
-        | SynPat.ListCons(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia: SynPatListConsTrivia) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.ListCons" range "list cons pattern (::)"
-            let lhsMessages = analyzePattern lhsPat
-            let rhsMessages = analyzePattern rhsPat
-            nodeMsg :: (lhsMessages @ rhsMessages)
-        
-        | SynPat.Ands(pats: SynPat list, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Ands" range $"and pattern (&) with {pats.Length} patterns"
-            let patMessages = pats |> List.collect analyzePattern
-            nodeMsg :: patMessages
-        
-        | SynPat.As(lhsPat: SynPat, rhsPat: SynPat, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.As" range "as pattern"
-            let lhsMessages = analyzePattern lhsPat
-            let rhsMessages = analyzePattern rhsPat
-            nodeMsg :: (lhsMessages @ rhsMessages)
-        
-        | SynPat.Null(range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.Null" range "null pattern"
-            [nodeMsg]
-        
-        | SynPat.OptionalVal(ident: Ident, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.OptionalVal" range "optional value pattern"
-            [nodeMsg]
-        
-        | SynPat.IsInst(targetType: SynType, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.IsInst" range "type test pattern (:? type)"
-            [nodeMsg]
-        
-        | SynPat.QuoteExpr(expr: SynExpr, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.QuoteExpr" range "quoted expression pattern"
-            [nodeMsg]
-        
-        | SynPat.InstanceMember(thisId: Ident, memberId: Ident, toolId: Ident option, accessibility: SynAccess option, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.InstanceMember" range "instance member pattern"
-            [nodeMsg]
-        
-        | SynPat.FromParseError(pat: SynPat, range: range) ->
-            let nodeMsg = createPatternVisitMessage "SynPat.FromParseError" range "pattern from parse error"
-            let patMessages = analyzePattern pat
-            nodeMsg :: patMessages
+    let analyzePattern (pat: SynPat) : Message list =
+        analyzePatternAcc pat []
+        |> List.rev  // Reverse to get messages in traversal order
     
     /// <summary>
     /// Recursively analyzes SynExpr with complete pattern matching using accumulator pattern
@@ -723,62 +745,75 @@ module CompleteASTPatterns =
         |> List.rev  // Reverse to get messages in traversal order
     
     /// <summary>
+    /// Analyzes a SynModuleDecl with complete pattern matching using accumulator pattern
+    /// **AI CRITICAL PATTERN**: This covers ALL SynModuleDecl cases - use this as your template
+    /// </summary>
+    /// <param name="decl">The F# module declaration syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    let rec analyzeModuleDeclAcc (decl: SynModuleDecl) (acc: Message list) : Message list =
+        match decl with
+        
+        // === LET BINDINGS ===
+        | SynModuleDecl.Let(isRecursive: bool, bindings: SynBinding list, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Let" range $"let binding (recursive: {isRecursive}, count: {bindings.Length})"
+            nodeMsg :: acc
+        
+        // === TYPE DEFINITIONS ===
+        | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Types" range $"type definitions (count: {typeDefns.Length})"
+            nodeMsg :: acc
+        
+        // === EXCEPTION DEFINITIONS ===
+        | SynModuleDecl.Exception(exnDefn: SynExceptionDefn, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Exception" range "exception definition"
+            nodeMsg :: acc
+        
+        // === OPEN STATEMENTS ===
+        | SynModuleDecl.Open(target: SynOpenDeclTarget, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Open" range "open statement"
+            nodeMsg :: acc
+        
+        // === MODULE DECLARATIONS ===
+        | SynModuleDecl.ModuleAbbrev(ident: Ident, longId: LongIdent, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.ModuleAbbrev" range $"module abbreviation: {ident.idText}"
+            nodeMsg :: acc
+        
+        | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.NestedModule" range $"nested module (recursive: {isRecursive}, declarations: {decls.Length})"
+            let acc' = nodeMsg :: acc
+            decls |> List.fold (fun accum decl -> analyzeModuleDeclAcc decl accum) acc'
+        
+        // === ATTRIBUTES ===
+        | SynModuleDecl.Attributes(attributes: SynAttributes, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Attributes" range $"attributes (count: {attributes.Length})"
+            nodeMsg :: acc
+        
+        // === HASH DIRECTIVES ===
+        | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.HashDirective" range "hash directive"
+            nodeMsg :: acc
+        
+        // === NAMESPACE FRAGMENT ===
+        | SynModuleDecl.NamespaceFragment(moduleOrNamespace: SynModuleOrNamespace) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.NamespaceFragment" moduleOrNamespace.Range "namespace fragment"
+            nodeMsg :: acc
+        
+        // === STANDALONE EXPRESSIONS ===
+        | SynModuleDecl.Expr(expr: SynExpr, range: range) ->
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Expr" range "standalone expression"
+            let acc' = nodeMsg :: acc
+            analyzeExpressionAcc expr acc'
+    
+    /// <summary>
     /// Analyzes a SynModuleDecl with complete pattern matching
     /// **AI CRITICAL PATTERN**: This covers ALL SynModuleDecl cases - use this as your template
     /// </summary>
     /// <param name="decl">The F# module declaration syntax tree node to analyze</param>
     /// <returns>List of analysis messages for any issues found</returns>
     let analyzeModuleDeclaration (decl: SynModuleDecl) : Message list =
-        match decl with
-        
-        // === LET BINDINGS ===
-        | SynModuleDecl.Let(isRecursive: bool, bindings: SynBinding list, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Let" range $"let binding (recursive: {isRecursive}, count: {bindings.Length})"
-            [nodeMsg]
-        
-        // === TYPE DEFINITIONS ===
-        | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Types" range $"type definitions (count: {typeDefns.Length})"
-            [nodeMsg]
-        
-        // === EXCEPTION DEFINITIONS ===
-        | SynModuleDecl.Exception(exnDefn: SynExceptionDefn, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Exception" range "exception definition"
-            [nodeMsg]
-        
-        // === OPEN STATEMENTS ===
-        | SynModuleDecl.Open(target: SynOpenDeclTarget, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Open" range "open statement"
-            [nodeMsg]
-        
-        // === MODULE DECLARATIONS ===
-        | SynModuleDecl.ModuleAbbrev(ident: Ident, longId: LongIdent, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.ModuleAbbrev" range $"module abbreviation: {ident.idText}"
-            [nodeMsg]
-        
-        | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.NestedModule" range $"nested module (recursive: {isRecursive}, declarations: {decls.Length})"
-            [nodeMsg]
-        
-        // === ATTRIBUTES ===
-        | SynModuleDecl.Attributes(attributes: SynAttributes, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Attributes" range $"attributes (count: {attributes.Length})"
-            [nodeMsg]
-        
-        // === HASH DIRECTIVES ===
-        | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.HashDirective" range "hash directive"
-            [nodeMsg]
-        
-        // === NAMESPACE FRAGMENT ===
-        | SynModuleDecl.NamespaceFragment(moduleOrNamespace: SynModuleOrNamespace) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.NamespaceFragment" moduleOrNamespace.Range "namespace fragment"
-            [nodeMsg]
-        
-        // === STANDALONE EXPRESSIONS ===
-        | SynModuleDecl.Expr(expr: SynExpr, range: range) ->
-            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Expr" range "standalone expression"
-            [nodeMsg]
+        analyzeModuleDeclAcc decl []
+        |> List.rev  // Reverse to get messages in traversal order
     
     /// <summary>
     /// Sample analyzer that uses the complete SynExpr pattern matching
