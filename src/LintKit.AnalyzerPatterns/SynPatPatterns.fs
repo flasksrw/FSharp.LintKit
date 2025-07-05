@@ -2,6 +2,7 @@ namespace LintKit.AnalyzerPatterns
 
 open FSharp.Analyzers.SDK
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 
 /// <summary>
@@ -102,6 +103,12 @@ module SynPatPatterns =
             let rhsMessages = analyzePattern rhsPat
             nodeMsg :: (lhsMessages @ rhsMessages)
         
+        | SynPat.ListCons(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia: SynPatListConsTrivia) ->
+            let nodeMsg = createPatternVisitMessage "SynPat.ListCons" range "list cons pattern (::)"
+            let lhsMessages = analyzePattern lhsPat
+            let rhsMessages = analyzePattern rhsPat
+            nodeMsg :: (lhsMessages @ rhsMessages)
+        
         | SynPat.Ands(pats: SynPat list, range: range) ->
             let nodeMsg = createPatternVisitMessage "SynPat.Ands" range $"and pattern (&) with {pats.Length} patterns"
             let patMessages = pats |> List.collect analyzePattern
@@ -137,10 +144,6 @@ module SynPatPatterns =
             let nodeMsg = createPatternVisitMessage "SynPat.FromParseError" range "pattern from parse error"
             let patMessages = analyzePattern pat
             nodeMsg :: patMessages
-        
-        // Handle any additional patterns not explicitly covered above
-        | _ ->
-            []
     
     /// <summary>
     /// Sample analyzer that uses the SynPat pattern matching
