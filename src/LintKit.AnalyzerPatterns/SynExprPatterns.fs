@@ -436,7 +436,7 @@ module SynExprPatterns =
     /// **AI PATTERN**: Use this structure for your own complete analyzers
     /// </summary>
     [<CliAnalyzer>]
-    let synExprPatternAnalyzer: Analyzer<CliContext> =
+    let exprPatternAnalyzer: Analyzer<CliContext> =
         fun (context: CliContext) ->
             async {
                 let messages = ResizeArray<Message>()

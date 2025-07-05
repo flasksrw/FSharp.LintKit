@@ -27,7 +27,7 @@ module SynTypePatterns =
     /// <param name="nodeType">Type of type expression visited</param>
     /// <param name="range">Location of the type expression</param>
     /// <param name="description">Description of what was found</param>
-    let private createNodeVisitMessage (nodeType: string) (range: range) (description: string) : Message =
+    let private createTypeVisitMessage (nodeType: string) (range: range) (description: string) : Message =
         {
             Type = "SynType Pattern Analyzer"
             Message = $"Visited {nodeType}: {description}"
@@ -48,26 +48,26 @@ module SynTypePatterns =
         
         // === LONG IDENTIFIER TYPES ===
         | SynType.LongIdent(longDotId: SynLongIdent) ->
-            let nodeMsg = createNodeVisitMessage "SynType.LongIdent" longDotId.Range "long identifier type"
+            let nodeMsg = createTypeVisitMessage "SynType.LongIdent" longDotId.Range "long identifier type"
             [nodeMsg]
         
         // === TYPE APPLICATIONS ===
         | SynType.App(typeName: SynType, lessRange: range option, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, isPostfix: bool, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.App" range $"type application (postfix: {isPostfix}, args: {typeArgs.Length})"
+            let nodeMsg = createTypeVisitMessage "SynType.App" range $"type application (postfix: {isPostfix}, args: {typeArgs.Length})"
             let baseTypeMessages = analyzeType typeName
             let typeArgMessages = typeArgs |> List.collect analyzeType
             nodeMsg :: (baseTypeMessages @ typeArgMessages)
         
         // === FUNCTION TYPES ===
         | SynType.Fun(argType: SynType, returnType: SynType, range: range, trivia: SynTypeFunTrivia) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Fun" range "function type"
+            let nodeMsg = createTypeVisitMessage "SynType.Fun" range "function type"
             let argMessages = analyzeType argType
             let returnMessages = analyzeType returnType
             nodeMsg :: (argMessages @ returnMessages)
         
         // === TUPLE TYPES ===
         | SynType.Tuple(isStruct: bool, path: SynTupleTypeSegment list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Tuple" range $"tuple type (struct: {isStruct}, segments: {path.Length})"
+            let nodeMsg = createTypeVisitMessage "SynType.Tuple" range $"tuple type (struct: {isStruct}, segments: {path.Length})"
             let elementMessages = 
                 path
                 |> List.collect (fun segment ->
@@ -79,94 +79,94 @@ module SynTypePatterns =
         
         // === ARRAY TYPES ===
         | SynType.Array(rank: int, elementType: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Array" range $"array type (rank: {rank})"
+            let nodeMsg = createTypeVisitMessage "SynType.Array" range $"array type (rank: {rank})"
             let elementMessages = analyzeType elementType
             nodeMsg :: elementMessages
         
         // === TYPE VARIABLES ===
         | SynType.Var(typar: SynTypar, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Var" range "type variable"
+            let nodeMsg = createTypeVisitMessage "SynType.Var" range "type variable"
             [nodeMsg]
         
         // === ANONYMOUS RECORD TYPES ===
         | SynType.AnonRecd(isStruct: bool, fields: (Ident * SynType) list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.AnonRecd" range $"anonymous record (struct: {isStruct}, fields: {fields.Length})"
+            let nodeMsg = createTypeVisitMessage "SynType.AnonRecd" range $"anonymous record (struct: {isStruct}, fields: {fields.Length})"
             let fieldMessages = fields |> List.collect (fun (_, fieldType) -> analyzeType fieldType)
             nodeMsg :: fieldMessages
         
         // === LONG IDENTIFIER APP ===
         | SynType.LongIdentApp(typeName: SynType, longDotId: SynLongIdent, lessRange: range option, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.LongIdentApp" range $"long identifier application (args: {typeArgs.Length})"
+            let nodeMsg = createTypeVisitMessage "SynType.LongIdentApp" range $"long identifier application (args: {typeArgs.Length})"
             let baseTypeMessages = analyzeType typeName
             let typeArgMessages = typeArgs |> List.collect analyzeType
             nodeMsg :: (baseTypeMessages @ typeArgMessages)
         
         // === OTHER TYPE PATTERNS ===
         | SynType.Anon(range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Anon" range "anonymous type"
+            let nodeMsg = createTypeVisitMessage "SynType.Anon" range "anonymous type"
             [nodeMsg]
         
         | SynType.StaticConstant(constant: SynConst, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.StaticConstant" range "static constant in type"
+            let nodeMsg = createTypeVisitMessage "SynType.StaticConstant" range "static constant in type"
             [nodeMsg]
         
         | SynType.StaticConstantExpr(expr: SynExpr, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.StaticConstantExpr" range "static constant expression"
+            let nodeMsg = createTypeVisitMessage "SynType.StaticConstantExpr" range "static constant expression"
             [nodeMsg]
         
         | SynType.StaticConstantNamed(ident: SynType, value: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.StaticConstantNamed" range "named static constant"
+            let nodeMsg = createTypeVisitMessage "SynType.StaticConstantNamed" range "named static constant"
             let identMessages = analyzeType ident
             let valueMessages = analyzeType value
             nodeMsg :: (identMessages @ valueMessages)
         
         | SynType.WithGlobalConstraints(typeName: SynType, constraints: SynTypeConstraint list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.WithGlobalConstraints" range $"type with constraints (count: {constraints.Length})"
+            let nodeMsg = createTypeVisitMessage "SynType.WithGlobalConstraints" range $"type with constraints (count: {constraints.Length})"
             let typeMessages = analyzeType typeName
             nodeMsg :: typeMessages
         
         | SynType.HashConstraint(innerType: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.HashConstraint" range "hash constraint (flexible type)"
+            let nodeMsg = createTypeVisitMessage "SynType.HashConstraint" range "hash constraint (flexible type)"
             let innerMessages = analyzeType innerType
             nodeMsg :: innerMessages
         
         | SynType.MeasurePower(baseMeasure: SynType, exponent: SynRationalConst, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.MeasurePower" range "measure power"
+            let nodeMsg = createTypeVisitMessage "SynType.MeasurePower" range "measure power"
             let baseMessages = analyzeType baseMeasure
             nodeMsg :: baseMessages
         
         | SynType.StaticConstantNull(range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.StaticConstantNull" range "static null constant"
+            let nodeMsg = createTypeVisitMessage "SynType.StaticConstantNull" range "static null constant"
             [nodeMsg]
         
         | SynType.Paren(innerType: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Paren" range "parenthesized type"
+            let nodeMsg = createTypeVisitMessage "SynType.Paren" range "parenthesized type"
             let innerMessages = analyzeType innerType
             nodeMsg :: innerMessages
         
         | SynType.WithNull(innerType: SynType, ambivalent: bool, range: range, trivia: SynTypeWithNullTrivia) ->
-            let nodeMsg = createNodeVisitMessage "SynType.WithNull" range $"nullable type (ambivalent: {ambivalent})"
+            let nodeMsg = createTypeVisitMessage "SynType.WithNull" range $"nullable type (ambivalent: {ambivalent})"
             let innerMessages = analyzeType innerType
             nodeMsg :: innerMessages
         
         | SynType.SignatureParameter(attributes: SynAttributes, optional: bool, paramId: Ident option, usedType: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.SignatureParameter" range $"signature parameter (optional: {optional})"
+            let nodeMsg = createTypeVisitMessage "SynType.SignatureParameter" range $"signature parameter (optional: {optional})"
             let typeMessages = analyzeType usedType
             nodeMsg :: typeMessages
         
         | SynType.Or(lhsType: SynType, rhsType: SynType, range: range, trivia: SynTypeOrTrivia) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Or" range "or type"
+            let nodeMsg = createTypeVisitMessage "SynType.Or" range "or type"
             let lhsMessages = analyzeType lhsType
             let rhsMessages = analyzeType rhsType
             nodeMsg :: (lhsMessages @ rhsMessages)
         
         | SynType.Intersection(typar: SynTypar option, types: SynType list, range: range, trivia: SynTyparDeclTrivia) ->
-            let nodeMsg = createNodeVisitMessage "SynType.Intersection" range $"intersection type (types: {types.Length})"
+            let nodeMsg = createTypeVisitMessage "SynType.Intersection" range $"intersection type (types: {types.Length})"
             let typeMessages = types |> List.collect analyzeType
             nodeMsg :: typeMessages
         
         | SynType.FromParseError(range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynType.FromParseError" range "type from parse error"
+            let nodeMsg = createTypeVisitMessage "SynType.FromParseError" range "type from parse error"
             [nodeMsg]
         
     
@@ -176,7 +176,7 @@ module SynTypePatterns =
     /// **AI PATTERN**: Use this structure for your own type expression analyzers
     /// </summary>
     [<CliAnalyzer>]
-    let synTypePatternAnalyzer: Analyzer<CliContext> =
+    let typePatternAnalyzer: Analyzer<CliContext> =
         fun (context: CliContext) ->
             async {
                 let messages = ResizeArray<Message>()

@@ -27,7 +27,7 @@ module SynModuleDeclPatterns =
     /// <param name="nodeType">Type of module declaration visited</param>
     /// <param name="range">Location of the declaration</param>
     /// <param name="description">Description of what was found</param>
-    let private createNodeVisitMessage (nodeType: string) (range: range) (description: string) : Message =
+    let private createModuleDeclVisitMessage (nodeType: string) (range: range) (description: string) : Message =
         {
             Type = "SynModuleDecl Pattern Analyzer"
             Message = $"Visited {nodeType}: {description}"
@@ -48,51 +48,51 @@ module SynModuleDeclPatterns =
         
         // === LET BINDINGS ===
         | SynModuleDecl.Let(isRecursive: bool, bindings: SynBinding list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.Let" range $"let binding (recursive: {isRecursive}, count: {bindings.Length})"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Let" range $"let binding (recursive: {isRecursive}, count: {bindings.Length})"
             [nodeMsg]
         
         // === TYPE DEFINITIONS ===
         | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.Types" range $"type definitions (count: {typeDefns.Length})"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Types" range $"type definitions (count: {typeDefns.Length})"
             [nodeMsg]
         
         // === EXCEPTION DEFINITIONS ===
         | SynModuleDecl.Exception(exnDefn: SynExceptionDefn, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.Exception" range "exception definition"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Exception" range "exception definition"
             [nodeMsg]
         
         // === OPEN STATEMENTS ===
         | SynModuleDecl.Open(target: SynOpenDeclTarget, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.Open" range "open statement"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Open" range "open statement"
             [nodeMsg]
         
         // === MODULE DECLARATIONS ===
         | SynModuleDecl.ModuleAbbrev(ident: Ident, longId: LongIdent, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.ModuleAbbrev" range $"module abbreviation: {ident.idText}"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.ModuleAbbrev" range $"module abbreviation: {ident.idText}"
             [nodeMsg]
         
         | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.NestedModule" range $"nested module (recursive: {isRecursive}, declarations: {decls.Length})"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.NestedModule" range $"nested module (recursive: {isRecursive}, declarations: {decls.Length})"
             [nodeMsg]
         
         // === ATTRIBUTES ===
         | SynModuleDecl.Attributes(attributes: SynAttributes, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.Attributes" range $"attributes (count: {attributes.Length})"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Attributes" range $"attributes (count: {attributes.Length})"
             [nodeMsg]
         
         // === HASH DIRECTIVES ===
         | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.HashDirective" range "hash directive"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.HashDirective" range "hash directive"
             [nodeMsg]
         
         // === NAMESPACE FRAGMENT ===
         | SynModuleDecl.NamespaceFragment(moduleOrNamespace: SynModuleOrNamespace) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.NamespaceFragment" moduleOrNamespace.Range "namespace fragment"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.NamespaceFragment" moduleOrNamespace.Range "namespace fragment"
             [nodeMsg]
         
         // === STANDALONE EXPRESSIONS ===
         | SynModuleDecl.Expr(expr: SynExpr, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynModuleDecl.Expr" range "standalone expression"
+            let nodeMsg = createModuleDeclVisitMessage "SynModuleDecl.Expr" range "standalone expression"
             [nodeMsg]
     
     /// <summary>
@@ -101,7 +101,7 @@ module SynModuleDeclPatterns =
     /// **AI PATTERN**: Use this structure for your own module declaration analyzers
     /// </summary>
     [<CliAnalyzer>]
-    let synModuleDeclPatternAnalyzer: Analyzer<CliContext> =
+    let moduleDeclPatternAnalyzer: Analyzer<CliContext> =
         fun (context: CliContext) ->
             async {
                 let messages = ResizeArray<Message>()

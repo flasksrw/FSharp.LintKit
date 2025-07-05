@@ -26,7 +26,7 @@ module SynPatPatterns =
     /// <param name="nodeType">Type of pattern visited</param>
     /// <param name="range">Location of the pattern</param>
     /// <param name="description">Description of what was found</param>
-    let private createNodeVisitMessage (nodeType: string) (range: range) (description: string) : Message =
+    let private createPatternVisitMessage (nodeType: string) (range: range) (description: string) : Message =
         {
             Type = "SynPat Pattern Analyzer"
             Message = $"Visited {nodeType}: {description}"
@@ -47,94 +47,94 @@ module SynPatPatterns =
         
         // === BASIC PATTERNS ===
         | SynPat.Const(constant: SynConst, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Const" range $"constant pattern: {constant}"
+            let nodeMsg = createPatternVisitMessage "SynPat.Const" range $"constant pattern: {constant}"
             [nodeMsg]
         
         | SynPat.Wild(range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Wild" range "wildcard pattern (_)"
+            let nodeMsg = createPatternVisitMessage "SynPat.Wild" range "wildcard pattern (_)"
             [nodeMsg]
         
         | SynPat.Named(ident: SynIdent, isThisVal: bool, accessibility: SynAccess option, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Named" range $"named pattern (isThis: {isThisVal})"
+            let nodeMsg = createPatternVisitMessage "SynPat.Named" range $"named pattern (isThis: {isThisVal})"
             [nodeMsg]
         
         | SynPat.Typed(pat: SynPat, targetType: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Typed" range "typed pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.Typed" range "typed pattern"
             let patMessages = analyzePattern pat
             nodeMsg :: patMessages
         
         // === COLLECTION PATTERNS ===
         | SynPat.Tuple(isStruct: bool, elementPats: SynPat list, commaRanges: range list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Tuple" range $"tuple pattern (struct: {isStruct}, elements: {elementPats.Length})"
+            let nodeMsg = createPatternVisitMessage "SynPat.Tuple" range $"tuple pattern (struct: {isStruct}, elements: {elementPats.Length})"
             let patMessages = elementPats |> List.collect analyzePattern
             nodeMsg :: patMessages
         
         | SynPat.ArrayOrList(isArray: bool, elementPats: SynPat list, range: range) ->
             let patType = if isArray then "array" else "list"
-            let nodeMsg = createNodeVisitMessage "SynPat.ArrayOrList" range $"{patType} pattern (elements: {elementPats.Length})"
+            let nodeMsg = createPatternVisitMessage "SynPat.ArrayOrList" range $"{patType} pattern (elements: {elementPats.Length})"
             let patMessages = elementPats |> List.collect analyzePattern
             nodeMsg :: patMessages
         
         | SynPat.Record(fieldPats: ((LongIdent * Ident) * range option * SynPat) list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Record" range $"record pattern (fields: {fieldPats.Length})"
+            let nodeMsg = createPatternVisitMessage "SynPat.Record" range $"record pattern (fields: {fieldPats.Length})"
             let patMessages = fieldPats |> List.collect (fun (_, _, pat) -> analyzePattern pat)
             nodeMsg :: patMessages
         
         // === IDENTIFIER PATTERNS ===
         | SynPat.LongIdent(longDotId: SynLongIdent, extraId: Ident option, typarDecls: SynValTyparDecls option, argPats: SynArgPats, accessibility: SynAccess option, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.LongIdent" range "long identifier pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.LongIdent" range "long identifier pattern"
             [nodeMsg]
         
         | SynPat.Paren(pat: SynPat, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Paren" range "parenthesized pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.Paren" range "parenthesized pattern"
             let patMessages = analyzePattern pat
             nodeMsg :: patMessages
         
         // === ADVANCED PATTERNS ===
         | SynPat.Attrib(pat: SynPat, attributes: SynAttributes, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Attrib" range $"attributed pattern (attributes: {attributes.Length})"
+            let nodeMsg = createPatternVisitMessage "SynPat.Attrib" range $"attributed pattern (attributes: {attributes.Length})"
             let patMessages = analyzePattern pat
             nodeMsg :: patMessages
         
         | SynPat.Or(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Or" range "or pattern (|)"
+            let nodeMsg = createPatternVisitMessage "SynPat.Or" range "or pattern (|)"
             let lhsMessages = analyzePattern lhsPat
             let rhsMessages = analyzePattern rhsPat
             nodeMsg :: (lhsMessages @ rhsMessages)
         
         | SynPat.Ands(pats: SynPat list, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Ands" range $"and pattern (&) with {pats.Length} patterns"
+            let nodeMsg = createPatternVisitMessage "SynPat.Ands" range $"and pattern (&) with {pats.Length} patterns"
             let patMessages = pats |> List.collect analyzePattern
             nodeMsg :: patMessages
         
         | SynPat.As(lhsPat: SynPat, rhsPat: SynPat, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.As" range "as pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.As" range "as pattern"
             let lhsMessages = analyzePattern lhsPat
             let rhsMessages = analyzePattern rhsPat
             nodeMsg :: (lhsMessages @ rhsMessages)
         
         | SynPat.Null(range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.Null" range "null pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.Null" range "null pattern"
             [nodeMsg]
         
         | SynPat.OptionalVal(ident: Ident, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.OptionalVal" range "optional value pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.OptionalVal" range "optional value pattern"
             [nodeMsg]
         
         | SynPat.IsInst(targetType: SynType, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.IsInst" range "type test pattern (:? type)"
+            let nodeMsg = createPatternVisitMessage "SynPat.IsInst" range "type test pattern (:? type)"
             [nodeMsg]
         
         | SynPat.QuoteExpr(expr: SynExpr, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.QuoteExpr" range "quoted expression pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.QuoteExpr" range "quoted expression pattern"
             [nodeMsg]
         
         | SynPat.InstanceMember(thisId: Ident, memberId: Ident, toolId: Ident option, accessibility: SynAccess option, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.InstanceMember" range "instance member pattern"
+            let nodeMsg = createPatternVisitMessage "SynPat.InstanceMember" range "instance member pattern"
             [nodeMsg]
         
         | SynPat.FromParseError(pat: SynPat, range: range) ->
-            let nodeMsg = createNodeVisitMessage "SynPat.FromParseError" range "pattern from parse error"
+            let nodeMsg = createPatternVisitMessage "SynPat.FromParseError" range "pattern from parse error"
             let patMessages = analyzePattern pat
             nodeMsg :: patMessages
         
@@ -148,7 +148,7 @@ module SynPatPatterns =
     /// **AI PATTERN**: Use this structure for your own pattern matching analyzers
     /// </summary>
     [<CliAnalyzer>]
-    let synPatPatternAnalyzer: Analyzer<CliContext> =
+    let patternPatternAnalyzer: Analyzer<CliContext> =
         fun (context: CliContext) ->
             async {
                 let messages = ResizeArray<Message>()
