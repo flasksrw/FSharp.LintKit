@@ -298,6 +298,9 @@ module CompleteASTPatterns =
     /// <returns>List of analysis messages for any issues found</returns>
     and analyzePatternAcc (pat: SynPat) (acc: Message list) : Message list =
         let analyzePatterns = createListAnalyzer analyzePatternAcc
+        let analyzeArgPats (argPats: SynArgPats) (acc: Message list) : Message list = 
+            // TODO: Implement proper SynArgPats analysis
+            acc
         
         match pat with
         
@@ -357,6 +360,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
 
             acc
+            |> analyzeArgPats argPats
         
         | SynPat.Paren(pat: SynPat, range: range) ->
             let nodeMsg = createPatternVisitMessage "SynPat.Paren" range "parenthesized pattern"
@@ -454,6 +458,9 @@ module CompleteASTPatterns =
         let analyzeOptionalExpression = createOptionAnalyzer analyzeExpressionAcc
         let analyzeExpressions = createListAnalyzer analyzeExpressionAcc
         let analyzeTypes = createListAnalyzer analyzeTypeAcc
+        let analyzeBindings = createListAnalyzer analyzeBindingAcc
+        let analyzeInterfaceImpls = createListAnalyzer analyzeSynInterfaceImplAcc
+        let analyzePatterns = createListAnalyzer analyzePatternAcc
         
         match expr with
         
@@ -535,8 +542,8 @@ module CompleteASTPatterns =
             acc
             |> analyzeTypeAcc objType
             |> analyzeOptionalExpression (argOptions |> Option.map fst)
-
-            // Note: Full analysis would also process bindings and members, but keeping focused on expressions
+            |> analyzeBindings bindings
+            |> analyzeInterfaceImpls extraImpls
         
         // === CONTROL FLOW ===
         | SynExpr.While(whileDebugPoint: DebugPointAtWhile, whileExpr: SynExpr, doExpr: SynExpr, range: range) ->
@@ -561,6 +568,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
 
             acc
+            |> analyzePatternAcc pat
             |> analyzeExpressionAcc enumExpr
             |> analyzeExpressionAcc bodyExpr
         
@@ -597,7 +605,15 @@ module CompleteASTPatterns =
             let nodeMsg = createNodeVisitMessage "SynExpr.Lambda" range "lambda expression"
             let acc = nodeMsg :: acc
 
-            acc
+            let accWithParsedData = 
+                match parsedData with
+                | Some (patterns, expr) ->
+                    acc
+                    |> analyzePatterns patterns
+                    |> analyzeExpressionAcc expr
+                | None -> acc
+            
+            accWithParsedData
             |> analyzeExpressionAcc body
         
         | SynExpr.MatchLambda(isExnMatch: bool, keywordRange: range, matchClauses: SynMatchClause list, matchDebugPoint: DebugPointAtBinding, range: range) ->
@@ -605,6 +621,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
             
             acc
+            |> analyzePatterns (matchClauses |> List.map (function SynMatchClause(pat, _, _, _, _, _) -> pat))
             |> analyzeExpressions (matchClauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.Match(matchDebugPoint: DebugPointAtBinding, expr: SynExpr, clauses: SynMatchClause list, range: range, trivia: SynExprMatchTrivia) ->
@@ -613,6 +630,7 @@ module CompleteASTPatterns =
             
             acc
             |> analyzeExpressionAcc expr
+            |> analyzePatterns (clauses |> List.map (function SynMatchClause(pat, _, _, _, _, _) -> pat))
             |> analyzeExpressions (clauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.Do(expr: SynExpr, range: range) ->
@@ -652,7 +670,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
 
             acc
-            |> analyzeExpressions (bindings |> List.map (function SynBinding(_, _, _, _, _, _, _, _, _, expr, _, _, _) -> expr))
+            |> analyzeBindings bindings
             |> analyzeExpressionAcc body
         
         // === ERROR HANDLING ===
@@ -890,6 +908,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
             
             acc
+            |> analyzePatternAcc pat
             |> analyzeExpressionAcc rhs
             |> analyzeExpressions (andBangs |> List.map (function SynExprAndBang(_, _, _, _, expr, _, _) -> expr))
             |> analyzeExpressionAcc body
@@ -923,7 +942,9 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
 
             acc
+            |> analyzeTypes typeArgs
             |> analyzeExpressions args
+            |> analyzeTypes retTy
         
         | SynExpr.LibraryOnlyStaticOptimization(constraints: SynStaticOptimizationConstraint list, expr: SynExpr, optimizedExpr: SynExpr, range: range) ->
             let nodeMsg = createNodeVisitMessage "SynExpr.LibraryOnlyStaticOptimization" range "library only static optimization"
@@ -1011,6 +1032,8 @@ module CompleteASTPatterns =
     /// <returns>List of analysis messages for any issues found</returns>
     and analyzeModuleDeclAcc (decl: SynModuleDecl) (acc: Message list) : Message list =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDeclAcc
+        let analyzeBindings = createListAnalyzer analyzeBindingAcc
+        let analyzeExpressions = createListAnalyzer analyzeExpressionAcc
         
         match decl with
         
@@ -1020,6 +1043,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
             
             acc
+            |> analyzeBindings bindings
         
         // === TYPE DEFINITIONS ===
         | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
@@ -1062,6 +1086,7 @@ module CompleteASTPatterns =
             let acc = nodeMsg :: acc
             
             acc
+            |> analyzeExpressions (attributes |> List.collect (fun attrList -> attrList.Attributes) |> List.map (fun attr -> attr.ArgExpr))
         
         // === HASH DIRECTIVES ===
         | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
@@ -1110,6 +1135,57 @@ module CompleteASTPatterns =
             |> analyzeModuleDecls decls
     
     /// <summary>
+    /// Analyzes a SynBinding with complete pattern matching using accumulator pattern
+    /// **AI CRITICAL PATTERN**: This handles SynBinding which contains both SynPat and SynExpr
+    /// </summary>
+    /// <param name="binding">The F# binding syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    and analyzeBindingAcc (binding: SynBinding) (acc: Message list) : Message list =
+        let analyzeExpressions = createListAnalyzer analyzeExpressionAcc
+        let analyzeOptionalReturnInfo = createOptionAnalyzer analyzeReturnInfoAcc
+            
+        match binding with
+        | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
+            acc
+            |> analyzeExpressions (attrs |> List.collect (fun attrList -> attrList.Attributes |> List.map (fun attr -> attr.ArgExpr)))
+            |> analyzePatternAcc headPat
+            |> analyzeOptionalReturnInfo returnInfo
+            |> analyzeExpressionAcc expr
+    
+    /// <summary>
+    /// Analyzes a SynInterfaceImpl with complete pattern matching using accumulator pattern
+    /// **AI CRITICAL PATTERN**: This handles SynInterfaceImpl containing SynType and SynBinding list
+    /// </summary>
+    /// <param name="interfaceImpl">The F# interface implementation syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    and analyzeSynInterfaceImplAcc (interfaceImpl: SynInterfaceImpl) (acc: Message list) : Message list =
+        let analyzeBindings = createListAnalyzer analyzeBindingAcc
+        
+        match interfaceImpl with
+        | SynInterfaceImpl(interfaceTy: SynType, withKeyword: range option, bindings: SynBinding list, members: SynMemberDefns, range: range) ->
+            acc
+            |> analyzeTypeAcc interfaceTy
+            |> analyzeBindings bindings
+    
+    /// <summary>
+    /// Analyzes a SynBindingReturnInfo with complete pattern matching using accumulator pattern
+    /// **AI CRITICAL PATTERN**: This handles SynBindingReturnInfo containing SynType and SynAttributes
+    /// </summary>
+    /// <param name="returnInfo">The F# binding return info syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    and analyzeReturnInfoAcc (returnInfo: SynBindingReturnInfo) (acc: Message list) : Message list =
+        let analyzeExpressions = createListAnalyzer analyzeExpressionAcc
+            
+        match returnInfo with
+        | SynBindingReturnInfo(typeName: SynType, range: range, attributes: SynAttributes, trivia: SynBindingReturnInfoTrivia) ->
+            acc
+            |> analyzeTypeAcc typeName
+            |> analyzeExpressions (attributes |> List.collect (fun attrList -> attrList.Attributes |> List.map (fun attr -> attr.ArgExpr)))
+    
+    /// <summary>
     /// Sample analyzer that uses the complete SynExpr pattern matching
     /// This demonstrates how to integrate the pattern analysis into a complete analyzer
     /// **AI PATTERN**: Use this structure for your own complete analyzers
@@ -1118,31 +1194,25 @@ module CompleteASTPatterns =
     let exprPatternAnalyzer: Analyzer<CliContext> =
         fun (context: CliContext) ->
             async {
-                let messages = ResizeArray<Message>()
-                
                 try
                     let parseResults = context.ParseFileResults
                     
                     match parseResults.ParseTree with
-                    | ParsedInput.ImplFile(ParsedImplFileInput(_, _, _, _, _, modules, _, _, _)) ->
-                        for moduleOrNs in modules do
-                            // Use the unified analyzeSynModuleOrNamespaceAcc for complete AST analysis
-                            let moduleMessages = analyzeSynModuleOrNamespaceAcc moduleOrNs [] |> List.rev
-                            messages.AddRange(moduleMessages)
+                    | ParsedInput.ImplFile(ParsedImplFileInput(_, _, _, _, _, contents, _, _, _)) ->
+                        let analyzeContents = createListAnalyzer analyzeSynModuleOrNamespaceAcc
+                        return [] |> analyzeContents contents |> List.rev
                     | ParsedInput.SigFile(_) ->
                         // Signature files don't contain expressions to analyze
-                        ()
+                        return []
                         
                 with
                 | ex ->
-                    messages.Add({
+                    return [{
                         Type = "SynExpr Pattern Analyzer"
                         Message = $"Error analyzing expressions: {ex.Message}"
                         Code = "SYNEXPR999"
                         Severity = Severity.Error
                         Range = Range.Zero
                         Fixes = []
-                    })
-                
-                return messages |> Seq.toList
+                    }]
             }
