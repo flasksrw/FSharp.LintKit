@@ -4,6 +4,7 @@ open FSharp.Analyzers.SDK
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
+open FSharp.Compiler.Xml
 
 /// <summary>
 /// Complete F# AST pattern matching reference - consolidates all major syntax tree nodes
@@ -85,6 +86,22 @@ module CompleteASTPatterns =
             Type = "SynModuleDecl Pattern Analyzer"
             Message = $"Visited {nodeType}: {description}"
             Code = "MODULEDECL001"
+            Severity = Severity.Info
+            Range = range
+            Fixes = []
+        }
+
+    /// <summary>
+    /// Creates an informational message for a module or namespace visit
+    /// </summary>
+    /// <param name="nodeType">Type of module or namespace visited</param>
+    /// <param name="range">Location of the module or namespace</param>
+    /// <param name="description">Description of what was found</param>
+    let private createModuleOrNamespaceVisitMessage (nodeType: string) (range: range) (description: string) : Message =
+        {
+            Type = "SynModuleOrNamespace Pattern Analyzer"
+            Message = $"Visited {nodeType}: {description}"
+            Code = "SYNMODNS001"
             Severity = Severity.Info
             Range = range
             Fixes = []
@@ -228,7 +245,7 @@ module CompleteASTPatterns =
     /// <param name="pat">The F# pattern syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzePatternAcc (pat: SynPat) (acc: Message list) : Message list =
+    and analyzePatternAcc (pat: SynPat) (acc: Message list) : Message list =
         match pat with
         
         // === BASIC PATTERNS ===
@@ -339,7 +356,7 @@ module CompleteASTPatterns =
     /// <param name="expr">Expression to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>Updated accumulator with messages from this expression and all sub-expressions</returns>
-    let rec analyzeExpressionAcc (expr: SynExpr) (acc: Message list) : Message list =
+    and analyzeExpressionAcc (expr: SynExpr) (acc: Message list) : Message list =
         match expr with
         
         // === BASIC CASES ===
@@ -721,7 +738,7 @@ module CompleteASTPatterns =
     /// <param name="decl">The F# module declaration syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzeModuleDeclAcc (decl: SynModuleDecl) (acc: Message list) : Message list =
+    and analyzeModuleDeclAcc (decl: SynModuleDecl) (acc: Message list) : Message list =
         match decl with
         
         // === LET BINDINGS ===
@@ -776,6 +793,26 @@ module CompleteASTPatterns =
             analyzeExpressionAcc expr acc'
     
     /// <summary>
+    /// Analyzes a SynModuleOrNamespace with complete pattern matching using accumulator pattern
+    /// **AI CRITICAL PATTERN**: This covers SynModuleOrNamespace cases - use this as your template
+    /// </summary>
+    /// <param name="moduleOrNs">The F# module or namespace syntax tree node to analyze</param>
+    /// <param name="acc">Accumulator for collecting messages</param>
+    /// <returns>List of analysis messages for any issues found</returns>
+    and analyzeSynModuleOrNamespaceAcc (moduleOrNs: SynModuleOrNamespace) (acc: Message list) : Message list =
+        match moduleOrNs with
+        | SynModuleOrNamespace(longId: LongIdent, isRecursive: bool, kind: SynModuleOrNamespaceKind, decls: SynModuleDecl list, xmlDoc: PreXmlDoc, attribs: SynAttributes, accessibility: SynAccess option, range: range, trivia: SynModuleOrNamespaceTrivia) ->
+            let kindStr = 
+                match kind with
+                | SynModuleOrNamespaceKind.NamedModule -> "named module"
+                | SynModuleOrNamespaceKind.AnonModule -> "anonymous module" 
+                | SynModuleOrNamespaceKind.DeclaredNamespace -> "declared namespace"
+                | SynModuleOrNamespaceKind.GlobalNamespace -> "global namespace"
+            let nodeMsg = createModuleOrNamespaceVisitMessage "SynModuleOrNamespace" range $"{kindStr} (recursive: {isRecursive}, declarations: {decls.Length})"
+            let acc' = nodeMsg :: acc
+            decls |> List.fold (fun accum decl -> analyzeModuleDeclAcc decl accum) acc'
+    
+    /// <summary>
     /// Sample analyzer that uses the complete SynExpr pattern matching
     /// This demonstrates how to integrate the pattern analysis into a complete analyzer
     /// **AI PATTERN**: Use this structure for your own complete analyzers
@@ -792,12 +829,9 @@ module CompleteASTPatterns =
                     match parseResults.ParseTree with
                     | ParsedInput.ImplFile(ParsedImplFileInput(_, _, _, _, _, modules, _, _, _)) ->
                         for moduleOrNs in modules do
-                            match moduleOrNs with
-                            | SynModuleOrNamespace(_, _, _, decls, _, _, _, _, _) ->
-                                // Use the unified analyzeModuleDeclAcc for complete AST analysis
-                                for decl in decls do
-                                    let declMessages = analyzeModuleDeclAcc decl [] |> List.rev
-                                    messages.AddRange(declMessages)
+                            // Use the unified analyzeSynModuleOrNamespaceAcc for complete AST analysis
+                            let moduleMessages = analyzeSynModuleOrNamespaceAcc moduleOrNs [] |> List.rev
+                            messages.AddRange(moduleMessages)
                     | ParsedInput.SigFile(_) ->
                         // Signature files don't contain expressions to analyze
                         ()
