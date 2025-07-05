@@ -54,26 +54,26 @@ Each rule should be specified with:
 **⚠️ CRITICAL: Always examine these resources first when implementing analyzers**
 
 Reference these existing implementations for patterns:
-- **Working Example (REQUIRED)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns/SimpleAnalyzerExample.fs
+- **Working Example (REQUIRED)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SimpleAnalyzerExample.fs
   - Complete TODO detection analyzer implementation
   - Shows proper [<CliAnalyzer>] attribute usage
   - Demonstrates correct FSharp.Analyzers.SDK patterns
   - Contains error handling and async structure examples
   - **Use this as your primary template for analyzer structure**
 
-- **Working Tests (REQUIRED)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
+- **Working Tests (REQUIRED)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
   - Correct FSharp.Analyzers.SDK.Testing usage
   - Critical pattern: `mkOptionsFromProject |> Async.AwaitTask`
   - Shows proper async test structure and assertions
   - **Use this as your primary template for test structure**
 
-- **AST Patterns (REFERENCE)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/src/LintKit.AnalyzerPatterns
-  - **SynExprPatterns.fs**: Complete SynExpr pattern matching (expressions, function calls, if-then-else, match, etc.)
-  - **SynModuleDeclPatterns.fs**: Module declarations (let bindings, type definitions, open statements, nested modules)
-  - **SynPatPatterns.fs**: Pattern matching constructs (match patterns, let binding patterns)
-  - **SynTypePatterns.fs**: Type expressions and annotations
-  - **AttributeDetection.fs**: Custom attribute detection and analysis
-  - **NamingConventions.fs**: Identifier naming convention enforcement
+- **AST Patterns (REFERENCE)**: Directory containing pattern matching examples
+  - **SynExprPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynExprPatterns.fs - Complete SynExpr pattern matching (expressions, function calls, if-then-else, match, etc.)
+  - **SynModuleDeclPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynModuleDeclPatterns.fs - Module declarations (let bindings, type definitions, open statements, nested modules)
+  - **SynPatPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynPatPatterns.fs - Pattern matching constructs (match patterns, let binding patterns)
+  - **SynTypePatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynTypePatterns.fs - Type expressions and annotations
+  - **AttributeDetection.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/AttributeDetection.fs - Custom attribute detection and analysis
+  - **NamingConventions.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/NamingConventions.fs - Identifier naming convention enforcement
   - **Consult specific files when you encounter AST pattern matching errors**
 
 - **Template Structure (REFERENCE)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer
