@@ -83,11 +83,13 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
 ### Sample Implementation Areas:
 - **Working Analyzer Example** (SimpleAnalyzerExample.fs - TODO detection with full implementation)
 - **Working Test Patterns** (SimpleAnalyzerExampleTests.fs - correct FSharp.Analyzers.SDK.Testing usage)
-- **Complete AST pattern matching references**:
-  - SynExpr patterns (all expression types with detailed type annotations)
-  - SynModuleDecl patterns (module declarations: let, type, open, nested modules)
-  - SynPat patterns (pattern matching constructs)
-  - SynType patterns (type expressions and annotations)
+- **Complete AST pattern matching reference** (CompleteASTPatterns.fs - consolidated all F# syntax tree patterns):
+  - SynExpr patterns (all 73 expression types with detailed type annotations)
+  - SynModuleDecl patterns (all 10 module declarations: let, type, open, nested modules)
+  - SynPat patterns (all 20 pattern matching constructs)
+  - SynType patterns (all 23 type expressions and annotations)
+  - SynArgPats, SynBinding, SynInterfaceImpl, SynBindingReturnInfo analysis
+  - Complete mutual recursion between all AST analyzer functions
 - **Attribute detection and analysis** (getting custom attributes from declarations)
 - **Type annotation checking** (detecting presence/absence of type annotations)
 - **Naming convention enforcement** (test prefixes, PascalCase, camelCase patterns)
@@ -117,10 +119,7 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
       Output.fs                    # SARIF/Text output processing
     /LintKit.AnalyzerPatterns      # AI-optimized AST analysis pattern reference
       SimpleAnalyzerExample.fs       # Working analyzer example with TODO detection
-      SynExprPatterns.fs             # Complete SynExpr pattern matching reference
-      SynModuleDeclPatterns.fs       # Complete SynModuleDecl pattern matching reference
-      SynPatPatterns.fs              # Complete SynPat pattern matching reference
-      SynTypePatterns.fs             # Complete SynType pattern matching reference
+      CompleteASTPatterns.fs         # Consolidated all F# AST pattern matching (SynExpr, SynModuleDecl, SynPat, SynType)
       AttributeDetection.fs          # Attribute detection and analysis examples
       TypeAnnotationChecker.fs       # Type annotation presence checking
       NamingConventions.fs           # Naming convention enforcement patterns

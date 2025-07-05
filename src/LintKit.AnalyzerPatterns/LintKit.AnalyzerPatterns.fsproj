@@ -11,10 +11,6 @@
     <Compile Include="SimpleAnalyzerExample.fs" />
     <Compile Include="PackageReferenceExample.fs" />
     <Compile Include="CompleteASTPatterns.fs" />
-    <Compile Include="SynExprPatterns.fs" />
-    <Compile Include="SynModuleDeclPatterns.fs" />
-    <Compile Include="SynPatPatterns.fs" />
-    <Compile Include="SynTypePatterns.fs" />
     <Compile Include="AttributeDetection.fs" />
     <Compile Include="TypeAnnotationChecker.fs" />
     <Compile Include="SeverityGuide.fs" />
