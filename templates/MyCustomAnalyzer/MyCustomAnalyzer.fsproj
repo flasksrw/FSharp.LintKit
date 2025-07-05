@@ -8,8 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="CustomAnalyzer.fs" />
-    <Compile Include="CustomAnalyzerTests.fs" />
+    <!-- 🤖 AI AGENTS (FOR YOU): ADD your analyzer and test files here -->
+    <!-- Example: <Compile Include="NoHardcodedStringsAnalyzer.fs" /> -->
+    <!-- Example: <Compile Include="NoHardcodedStringsAnalyzerTests.fs" /> -->
+    <!-- Example: <Compile Include="RequireTypeAnnotationsAnalyzer.fs" /> -->
+    <!-- Example: <Compile Include="RequireTypeAnnotationsAnalyzerTests.fs" /> -->
+    <!-- DO NOT include CustomAnalyzer.fs or CustomAnalyzerTests.fs - they are template files only -->
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="CustomAnalyzer.fs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CustomAnalyzerTests.fs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="AI_RULE_IMPLEMENTATION.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

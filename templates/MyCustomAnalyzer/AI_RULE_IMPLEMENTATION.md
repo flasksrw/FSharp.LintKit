@@ -113,30 +113,65 @@ The template project includes:
 2. The FSharp.Analyzers.SDK package reference is already included
 3. **EDIT** the namespace in CustomAnalyzer.fs to match your project name
 
-### Step 2: Analyzer Implementation
-1. **EDIT** the existing `CustomAnalyzer.fs` file (analyzer module with [<CliAnalyzer>] attribute already exists)
-2. **REPLACE** the TODO implementations in the existing `customAnalyzer` function
-3. **EDIT** the helper functions `analyzeExpression` and `analyzeModuleDeclaration`
-4. The error handling structure is already included
+### Step 2: Analyzer Implementation  
+**🤖 IMPORTANT (FOR YOU): Create one file per rule using the template**
 
-### Step 3: Rule Logic
-1. Pattern match against relevant AST nodes
-2. Apply detection logic based on rule specifications
-3. Generate appropriate Message objects with:
-   - Type: Clear rule category
-   - Message: User-friendly description
-   - Code: Unique rule identifier (e.g., "RULE001")
-   - Severity: Appropriate severity level
+For each rule you need to implement:
+1. **COPY** the `CustomAnalyzer.fs` file to a new file with a descriptive name:
+   - Example: `NoHardcodedStringsAnalyzer.fs`
+   - Example: `RequireTypeAnnotationsAnalyzer.fs`
+   - Example: `NamingConventionAnalyzer.fs`
+
+2. **EDIT** the copied file:
+   - Change the module name from `TemplateAnalyzer` to match your rule
+   - Change the function name from `templateAnalyzer` to match your rule
+   - Update the Type, Message, and Code in the error handling section
+
+3. **IMPLEMENT** only ONE specific rule per file
+
+4. **ADD** the new .fs file to `MyCustomAnalyzer.fsproj`:
+   ```xml
+   <Compile Include="YourAnalyzerName.fs" />
+   ```
+
+5. The error handling structure and async pattern are already included in the template
+
+### Step 3: Rule Logic (For Each Analyzer Function)
+1. Focus on ONE specific rule per analyzer function
+2. Pattern match against relevant AST nodes for that rule only
+3. Apply detection logic based on that specific rule specification
+4. Generate appropriate Message objects with:
+   - Type: Clear rule category (specific to this rule)
+   - Message: User-friendly description for this rule
+   - Code: Unique rule identifier (e.g., "HARDCODED001", "TYPEANNOT001")
+   - Severity: Appropriate severity level for this rule
    - Range: Precise location information
    - Fixes: Suggested corrections (if applicable)
 
 ### Step 4: Test Suite
-**EDIT** the existing `CustomAnalyzerTests.fs` file to add comprehensive tests covering:
-- **Positive Cases**: Rule correctly detects target patterns
-- **Negative Cases**: Rule does not trigger on valid code
-- **Boundary Cases**: Edge conditions and complex scenarios
-- **Error Handling**: Graceful handling of malformed syntax
-- **Performance**: Efficient processing of large files
+**🤖 IMPORTANT (FOR YOU): Create test files using the template**
+
+For each analyzer file you created:
+1. **COPY** the `CustomAnalyzerTests.fs` file to a new test file:
+   - Example: `NoHardcodedStringsAnalyzerTests.fs`
+   - Example: `RequireTypeAnnotationsAnalyzerTests.fs`
+
+2. **EDIT** the copied test file:
+   - Update the `open` statement to import your specific analyzer module
+   - Rename the test module to match your analyzer
+   - Change the analyzer function calls to use your analyzer function name
+   - Implement tests for your specific rule only
+
+3. **ADD** the test file to `MyCustomAnalyzer.fsproj`:
+   ```xml
+   <Compile Include="YourAnalyzerNameTests.fs" />
+   ```
+
+4. **IMPLEMENT** comprehensive tests covering:
+   - **Positive Cases**: Rule correctly detects target patterns
+   - **Negative Cases**: Rule does not trigger on valid code
+   - **Boundary Cases**: Edge conditions and complex scenarios
+   - **Error Handling**: Graceful handling of malformed syntax
 
 ## TEST REQUIREMENTS
 

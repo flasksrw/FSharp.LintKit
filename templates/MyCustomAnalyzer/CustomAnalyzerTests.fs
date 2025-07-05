@@ -1,24 +1,29 @@
 /// <summary>
-/// Test Template for Custom Analyzer - EDIT THIS FILE
+/// TEST TEMPLATE FILE - DO NOT EDIT DIRECTLY  
 /// 
-/// **🤖 FOR AI AGENTS (THIS MEANS YOU)**: REPLACE the TODO implementations with comprehensive tests:
-/// 1. Study SimpleAnalyzerExampleTests.fs for the exact working patterns
-/// 2. Use the critical pattern: mkOptionsFromProject |> Async.AwaitTask
-/// 3. EDIT the test methods to match your analyzer rules
-/// 4. Create positive tests (rule triggers) and negative tests (rule doesn't trigger)
-/// 5. Test edge cases: empty modules, multiple instances, error handling
+/// **🤖 FOR AI AGENTS (THIS MEANS YOU)**: COPY this file for each analyzer:
+/// 1. COPY this file to create test files (e.g., NoHardcodedStringsAnalyzerTests.fs)
+/// 2. UPDATE the open statement to import your specific analyzer module
+/// 3. RENAME the test module to match your analyzer
+/// 4. IMPLEMENT tests for your specific rule only
+/// 5. ADD the new test file to the .fsproj file
 /// 
-/// **FOR HUMAN DEVELOPERS**:
-/// - Let AI agent generate tests based on your rule specifications
-/// - All tests follow the established working patterns
+/// **EXAMPLE TEST FILE NAMES TO CREATE**:
+/// - NoHardcodedStringsAnalyzerTests.fs
+/// - RequireTypeAnnotationsAnalyzerTests.fs
+/// - NamingConventionAnalyzerTests.fs
 /// </summary>
 namespace MyCustomAnalyzer.Tests
 
 open FSharp.Analyzers.SDK.Testing
-open MyCustomAnalyzer.CustomAnalyzer
+// 🤖 UPDATE THIS IMPORT (FOR YOU): Change to your specific analyzer module
+// Example: open MyCustomAnalyzer.NoHardcodedStringsAnalyzer
+open MyCustomAnalyzer.TemplateAnalyzer
 open Xunit
 
-module CustomAnalyzerTests =
+// 🤖 RENAME THIS MODULE (FOR YOU): Match your analyzer name
+// Example: NoHardcodedStringsAnalyzerTests, RequireTypeAnnotationsAnalyzerTests
+module TemplateAnalyzerTests =
     
     /// <summary>
     /// EDIT THIS TEST: Replace TODO with positive test case for your analyzer
@@ -44,7 +49,8 @@ let placeholder = "Replace with actual test code"
 """
             
             let ctx = getContext projectOptions source
-            let! msgs = customAnalyzer ctx
+            // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
+            let! msgs = templateAnalyzer ctx
             
             // 🤖 EDIT THIS (FOR YOU): Replace with actual assertions
             // Example assertions:
@@ -78,7 +84,8 @@ let validCode = "Replace with code that should pass"
 """
             
             let ctx = getContext projectOptions source
-            let! msgs = customAnalyzer ctx
+            // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
+            let! msgs = templateAnalyzer ctx
             
             // 🤖 EDIT THIS (FOR YOU): For negative tests, typically expect empty results
             // Assert.Empty(msgs)
@@ -106,7 +113,8 @@ module TestModule
 """
             
             let ctx = getContext projectOptions source
-            let! msgs = customAnalyzer ctx
+            // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
+            let! msgs = templateAnalyzer ctx
             
             // Should not crash and return a valid result
             Assert.NotNull(msgs)
