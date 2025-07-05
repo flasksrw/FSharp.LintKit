@@ -67,6 +67,11 @@ Reference these existing implementations for patterns:
   - Shows proper async test structure and assertions
   - **Use this as your primary template for test structure**
 
+- **Package Reference Tests (REQUIRED for external dependencies)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/tests/LintKit.AnalyzerPatterns.Tests/PackageReferenceExampleTests.fs
+  - Shows how to test code with external package references
+  - Use package records: `{ Name = "xunit"; Version = "2.9.2" }`
+  - **Use this when test code contains [<Fact>], Assert.Equal, or custom libraries**
+
 - **AST Patterns (REFERENCE)**: Directory containing pattern matching examples
   - **SynExprPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynExprPatterns.fs - Complete SynExpr pattern matching (expressions, function calls, if-then-else, match, etc.)
   - **SynModuleDeclPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynModuleDeclPatterns.fs - Module declarations (let bindings, type definitions, open statements, nested modules)
@@ -179,6 +184,20 @@ For each analyzer file you created:
 - Study **SimpleAnalyzerExampleTests.fs** for the correct FSharp.Analyzers.SDK.Testing patterns
 - Critical pattern: `mkOptionsFromProject |> Async.AwaitTask` for proper async setup
 - Follow the established test structure with async blocks and proper assertions
+
+### Package References in Test Code
+**🤖 FOR AI AGENTS (THIS MEANS YOU)**: When test code references external packages, add them using Name/Version records:
+```fsharp
+mkOptionsFromProject
+    "net8.0"
+    [
+        { Name = "xunit"; Version = "2.9.2" }
+        { Name = "MyLibrary"; Version = "1.0.0" }
+    ]
+```
+Common packages:
+- xUnit: `{ Name = "xunit"; Version = "2.9.2" }` for `[<Fact>]`, `Assert.Equal`
+- FSharp.Core: Usually not needed, included by default
 
 ### Test Categories
 1. **Basic Functionality**

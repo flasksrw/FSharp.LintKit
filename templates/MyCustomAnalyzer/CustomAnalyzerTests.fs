@@ -38,13 +38,16 @@ module TemplateAnalyzerTests =
             let! projectOptions =
                 mkOptionsFromProject
                     "net8.0"  // Adjust target framework as needed
-                    []        // Empty packages list for basic F# testing
+                    []        // 🤖 EDIT IF NEEDED (FOR YOU): Add packages with Name/Version records
+                              // Example: [{ Name = "xunit"; Version = "2.9.2" }] if test code uses [<Fact>]
+                              // Example: [{ Name = "MyLibrary"; Version = "1.0.0" }] for custom libraries
                 |> Async.AwaitTask
             
             let source = """
 module TestModule
 
 // 🤖 EDIT THIS (FOR YOU): Add test code that should trigger your rule
+// If using xUnit attributes like [<Fact>], add "xunit" to packages list above
 let placeholder = "Replace with actual test code"
 """
             

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="SimpleAnalyzerExample.fs" />
+    <Compile Include="PackageReferenceExample.fs" />
     <Compile Include="SynExprPatterns.fs" />
     <Compile Include="SynModuleDeclPatterns.fs" />
     <Compile Include="SynPatPatterns.fs" />
