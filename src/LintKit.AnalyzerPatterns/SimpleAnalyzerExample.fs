@@ -1,3 +1,9 @@
+namespace LintKit.AnalyzerPatterns
+
+open FSharp.Analyzers.SDK
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
+
 /// <summary>
 /// Simple analyzer example for detecting TODO comments in F# code
 /// 
@@ -10,12 +16,6 @@
 /// **For AI Agents**: Copy and adapt these patterns when implementing new analyzers.
 /// **For Humans**: Use this as a starting point for more complex analyzers.
 /// </summary>
-namespace LintKit.AnalyzerPatterns
-
-open FSharp.Analyzers.SDK
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-
 module SimpleAnalyzerExample =
     
     /// <summary>

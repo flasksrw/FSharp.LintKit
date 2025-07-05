@@ -1,3 +1,9 @@
+namespace LintKit.AnalyzerPatterns
+
+open FSharp.Analyzers.SDK
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
+
 /// <summary>
 /// Example analyzer demonstrating how to handle external package references in test code
 /// 
@@ -7,12 +13,6 @@
 /// **For AI Agents**: Use this pattern when test code references external packages
 /// **For Humans**: Reference for testing analyzers with package dependencies
 /// </summary>
-namespace LintKit.AnalyzerPatterns
-
-open FSharp.Analyzers.SDK
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-
 module PackageReferenceExample =
     
     /// <summary>
