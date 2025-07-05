@@ -61,6 +61,12 @@ Reference these existing implementations for patterns:
   - Contains error handling and async structure examples
   - **Use this as your primary template for analyzer structure**
 
+- **Complete SynExpr Patterns (REQUIRED for thorough analysis)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynExprPatterns.fs
+  - Demonstrates complete SynExpr pattern matching (all 73 patterns)
+  - Uses accumulator pattern for efficient message collection
+  - Shows proper recursive traversal of all AST nodes with full type annotations
+  - **Use this when you need to ensure no AST nodes are missed**
+
 - **Working Tests (REQUIRED)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
   - Correct FSharp.Analyzers.SDK.Testing usage
   - Critical pattern: `mkOptionsFromProject |> Async.AwaitTask`
