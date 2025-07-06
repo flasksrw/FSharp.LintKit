@@ -321,6 +321,10 @@ module CompleteASTPatterns =
             state
         
         | SynExpr.Typed(expr: SynExpr, targetType: SynType, range: range) ->
+            // TYPE ANNOTATION DETECTION: Explicit type annotation from targetType, check for redundancy
+            // CUSTOM RULE EXAMPLES: Redundant type annotation detection, type clarity validation, unnecessary verbosity checks
+            // ACCESS PATTERN: Check expr type - SynExpr.Const or SynExpr.Ident may indicate redundant annotation
+            // ANNOTATION ANALYSIS: Validate if annotation improves clarity or is redundant for simple expressions
             state
             |> analyzeExpression expr
             |> analyzeType targetType
@@ -403,6 +407,10 @@ module CompleteASTPatterns =
             |> analyzeExpression expr
         
         | SynExpr.Lambda(fromMethod: bool, inLambdaSeq: bool, args: SynSimplePats, body: SynExpr, parsedData: (SynPat list * SynExpr) option, range: range, trivia: SynExprLambdaTrivia) ->
+            // TYPE ANNOTATION ANALYSIS: Lambda parameter types from args and parsedData patterns
+            // CUSTOM RULE EXAMPLES: Complex lambda parameter type annotation suggestions, lambda clarity validation
+            // ACCESS PATTERN: Check args (SynSimplePats) and parsedData patterns for explicit type annotations
+            // PARAMETER TYPE DETECTION: Analyze if lambda parameters need explicit types for complex cases
             let analyzeParsedData =
                 let analyzeParsedData (patterns, expr) state =
                     state
@@ -450,6 +458,10 @@ module CompleteASTPatterns =
         
         // === BINDINGS ===
         | SynExpr.LetOrUse(isRecursive: bool, isUse: bool, bindings: SynBinding list, body: SynExpr, range: range, trivia: SynExprLetOrUseTrivia) ->
+            // TYPE ANNOTATION ANALYSIS: Local let binding type annotations from bindings returnInfo
+            // CUSTOM RULE EXAMPLES: Complex let binding type annotation suggestions, local variable clarity validation
+            // ACCESS PATTERN: bindings |> List.map (function SynBinding(_, _, _, _, _, _, _, pat, returnInfo, expr, _, _, _) -> pat, returnInfo, expr)
+            // LOCAL BINDING VALIDATION: Check if complex expressions need type hints, avoid redundant annotations
             state
             |> analyzeBindings bindings
             |> analyzeExpression body
@@ -807,10 +819,12 @@ module CompleteASTPatterns =
         | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
             // IDENTIFIER EXTRACTION: Function names from headPat extraction (SynPat.Named or SynPat.LongIdent)
             // ATTRIBUTE EXTRACTION: Attribute information from attrs [<Attribute>] data
+            // TYPE ANNOTATION ANALYSIS: Return type annotation presence from returnInfo (Some/None)
             // CUSTOM RULE EXAMPLES: Function naming conventions, required attribute checks, accessibility validation, [<CompiledName>] detection
             // ACCESS PATTERN: let attrs = attrs |> List.collect _.Attributes
             // ATTRIBUTE ANALYSIS: Check for specific attributes like [<Obsolete>], [<CompiledName>], [<Inline>], count validation
             // FUNCTION CONTEXT: Use headPat to extract function name, check if public (uppercase start) needs attributes
+            // RETURN TYPE VALIDATION: returnInfo.IsSome for explicit return types, check public functions need type annotations
             state
             |> analyzeExpressions (attrs |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzePattern headPat
