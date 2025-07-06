@@ -237,6 +237,10 @@ module CompleteASTPatterns =
         
         // === ADVANCED PATTERNS ===
         | SynPat.Attrib(pat: SynPat, attributes: SynAttributes, range: range) ->
+            // IDENTIFIER EXTRACTION: Attribute names from attributes |> List.collect _.Attributes
+            // CUSTOM RULE EXAMPLES: Required attribute validation, deprecated attribute detection, attribute count limits
+            // ACCESS PATTERN: attributes |> List.collect (fun attrList -> attrList.Attributes |> List.map (fun attr -> attr.TypeName))
+            // ATTRIBUTE ANALYSIS: Check for [<CLIMutable>], [<RequireQualifiedAccess>], [<CompiledName>] etc.
             state
             |> analyzePattern pat
         
@@ -702,9 +706,11 @@ module CompleteASTPatterns =
         | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
             // IDENTIFIER EXTRACTION: Type names from typeDefns list, get names from SynComponentInfo.longId
             // TYPE KIND EXTRACTION: Use SynTypeDefnRepr to determine Record/Union/Class/Interface/Delegate
+            // ATTRIBUTE EXTRACTION: Type attributes from SynComponentInfo.attributes
             // CUSTOM RULE EXAMPLES: Type naming conventions, type hierarchy checks, inheritance constraint validation, record/union structure validation
             // ACCESS PATTERN: typeDefns |> List.collect (fun (SynTypeDefn(ci, _, _, _, _, _)) -> match ci with SynComponentInfo(_, _, _, longId, _, _, _, _) -> longId)
             // TYPE DEFINITION DETAILS: SynTypeDefn(componentInfo, typeRepr, members, implicitCtor, range, trivia)
+            // ATTRIBUTE ANALYSIS: Check for [<CLIMutable>] on records, [<RequireQualifiedAccess>] on unions, [<Struct>] on value types
             state
         
         // === EXCEPTION DEFINITIONS ===
@@ -739,6 +745,10 @@ module CompleteASTPatterns =
         
         // === ATTRIBUTES ===
         | SynModuleDecl.Attributes(attributes: SynAttributes, range: range) ->
+            // IDENTIFIER EXTRACTION: Standalone attribute names from attributes |> List.collect _.Attributes
+            // CUSTOM RULE EXAMPLES: Global attribute validation, assembly-level attribute checks, deprecated attribute detection
+            // ACCESS PATTERN: attributes |> List.collect (fun attrList -> attrList.Attributes |> List.map (fun attr -> attr.TypeName, attr.ArgExpr))
+            // ATTRIBUTE ANALYSIS: Check for assembly attributes like [<assembly: AssemblyVersion>], validate attribute arguments
             state
             |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
         
@@ -770,8 +780,10 @@ module CompleteASTPatterns =
         | SynModuleOrNamespace(longId: LongIdent, isRecursive: bool, kind: SynModuleOrNamespaceKind, decls: SynModuleDecl list, xmlDoc: PreXmlDoc, attribs: SynAttributes, accessibility: SynAccess option, range: range, trivia: SynModuleOrNamespaceTrivia) ->
             // IDENTIFIER EXTRACTION: Module/namespace names from longId name list
             // MODULE KIND DETECTION: Use kind to determine NamedModule/DeclaredNamespace etc.
-            // CUSTOM RULE EXAMPLES: Module naming conventions, namespace structure checks, attribute validation
+            // ATTRIBUTE EXTRACTION: Module-level attributes from attribs |> List.collect _.Attributes
+            // CUSTOM RULE EXAMPLES: Module naming conventions, namespace structure checks, attribute validation, [<RequireQualifiedAccess>] detection
             // ACCESS PATTERN: let names = longId |> List.map (fun id -> id.idText)
+            // ATTRIBUTE ANALYSIS: Check attribute count, detect specific attributes like [<AutoOpen>], [<RequireQualifiedAccess>]
             let kindStr = function
             | SynModuleOrNamespaceKind.NamedModule -> "named module"
             | SynModuleOrNamespaceKind.AnonModule -> "anonymous module" 
@@ -795,8 +807,10 @@ module CompleteASTPatterns =
         | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
             // IDENTIFIER EXTRACTION: Function names from headPat extraction (SynPat.Named or SynPat.LongIdent)
             // ATTRIBUTE EXTRACTION: Attribute information from attrs [<Attribute>] data
-            // CUSTOM RULE EXAMPLES: Function naming conventions, required attribute checks, accessibility validation
+            // CUSTOM RULE EXAMPLES: Function naming conventions, required attribute checks, accessibility validation, [<CompiledName>] detection
             // ACCESS PATTERN: let attrs = attrs |> List.collect _.Attributes
+            // ATTRIBUTE ANALYSIS: Check for specific attributes like [<Obsolete>], [<CompiledName>], [<Inline>], count validation
+            // FUNCTION CONTEXT: Use headPat to extract function name, check if public (uppercase start) needs attributes
             state
             |> analyzeExpressions (attrs |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzePattern headPat
