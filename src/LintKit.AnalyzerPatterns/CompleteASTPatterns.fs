@@ -31,17 +31,6 @@ module CompleteASTPatterns =
     let trd (_, _, a) = a
     let createListAnalyzer<'a> (analyzer: 'a -> list<Message> -> list<Message>) = flip (List.fold (flip analyzer))
     let createOptionAnalyzer<'a> (analyzer: 'a -> list<Message> -> list<Message>) = Option.map analyzer >> Option.defaultValue id
-    
-    /// <summary>
-    /// Extracts all SynAttribute from SynAttributes
-    /// SynAttributes -> List<SynAttributeList> -> List<SynAttribute>
-    /// </summary>
-    /// <param name="attributes">The SynAttributes to extract attributes from</param>
-    /// <returns>List of all SynAttribute from all attribute lists</returns>
-    let extractAttributes (attributes: SynAttributes) : SynAttribute list =
-        attributes 
-        |> List.collect (fun attrList -> attrList.Attributes)
-
 
     /// <summary>
     /// Analyzes a SynType with complete pattern matching using accumulator pattern
@@ -141,7 +130,7 @@ module CompleteASTPatterns =
         
         | SynType.SignatureParameter(attributes: SynAttributes, optional: bool, paramId: Ident option, usedType: SynType, range: range) ->
             acc
-            |> analyzeExpressions (extractAttributes attributes |> List.map (fun attr -> attr.ArgExpr))
+            |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzeType usedType
         
         | SynType.Or(lhsType: SynType, rhsType: SynType, range: range, trivia: SynTypeOrTrivia) ->
@@ -300,7 +289,7 @@ module CompleteASTPatterns =
             acc
             |> analyzeExprs exprs
         
-        | SynExpr.AnonRecd(isStruct: bool, copyInfo: (SynExpr * BlockSeparator) option, recordFields: (SynLongIdent * range option * SynExpr) list, range: range, trivia) ->            
+        | SynExpr.AnonRecd(isStruct: bool, copyInfo: (SynExpr * BlockSeparator) option, recordFields: (SynLongIdent * range option * SynExpr) list, range: range, trivia: SynExprAnonRecdTrivia) ->            
             acc
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
             |> analyzeExpressions (recordFields |> List.map trd)
@@ -405,18 +394,18 @@ module CompleteASTPatterns =
             |> analyzeTypes typeArgs
         
         // === BINDINGS ===
-        | SynExpr.LetOrUse(isRecursive: bool, isUse: bool, bindings: SynBinding list, body: SynExpr, range: range, trivia) ->
+        | SynExpr.LetOrUse(isRecursive: bool, isUse: bool, bindings: SynBinding list, body: SynExpr, range: range, trivia: SynExprLetOrUseTrivia) ->
             acc
             |> analyzeBindings bindings
             |> analyzeExpression body
         
         // === ERROR HANDLING ===
-        | SynExpr.TryWith(tryExpr: SynExpr, withCases: SynMatchClause list, range: range, tryDebugPoint: DebugPointAtTry, withDebugPoint: DebugPointAtWith, trivia) ->
+        | SynExpr.TryWith(tryExpr: SynExpr, withCases: SynMatchClause list, range: range, tryDebugPoint: DebugPointAtTry, withDebugPoint: DebugPointAtWith, trivia: SynExprTryWithTrivia) ->
             acc
             |> analyzeExpression tryExpr
             |> analyzeExpressions (withCases |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
-        | SynExpr.TryFinally(tryExpr: SynExpr, finallyExpr: SynExpr, range: range, tryDebugPoint: DebugPointAtTry, finallyDebugPoint: DebugPointAtFinally, trivia) ->
+        | SynExpr.TryFinally(tryExpr: SynExpr, finallyExpr: SynExpr, range: range, tryDebugPoint: DebugPointAtTry, finallyDebugPoint: DebugPointAtFinally, trivia: SynExprTryFinallyTrivia) ->
             acc
             |> analyzeExpression tryExpr
             |> analyzeExpression finallyExpr
@@ -425,12 +414,12 @@ module CompleteASTPatterns =
             acc
             |> analyzeExpression expr
         
-        | SynExpr.Sequential(debugPoint: DebugPointAtSequential, isTrueSeq: bool, expr1: SynExpr, expr2: SynExpr, range: range, trivia) ->
+        | SynExpr.Sequential(debugPoint: DebugPointAtSequential, isTrueSeq: bool, expr1: SynExpr, expr2: SynExpr, range: range, trivia: SynExprSequentialTrivia) ->
             acc
             |> analyzeExpression expr1
             |> analyzeExpression expr2
         
-        | SynExpr.IfThenElse(ifExpr: SynExpr, thenExpr: SynExpr, elseExpr: SynExpr option, spIfToThen: DebugPointAtBinding, isFromErrorRecovery: bool, range: range, trivia) ->
+        | SynExpr.IfThenElse(ifExpr: SynExpr, thenExpr: SynExpr, elseExpr: SynExpr option, spIfToThen: DebugPointAtBinding, isFromErrorRecovery: bool, range: range, trivia: SynExprIfThenElseTrivia) ->
             acc
             |> analyzeExpression ifExpr
             |> analyzeExpression thenExpr
@@ -455,7 +444,7 @@ module CompleteASTPatterns =
             acc
             |> analyzeExpression expr
         
-        | SynExpr.DotLambda(expr: SynExpr, range: range, trivia) ->
+        | SynExpr.DotLambda(expr: SynExpr, range: range, trivia: SynExprDotLambdaTrivia) ->
             acc
             |> analyzeExpression expr
         
@@ -542,27 +531,27 @@ module CompleteASTPatterns =
             |> analyzeExpression expr2
             |> analyzeExpression ifNotStmt
         
-        | SynExpr.YieldOrReturn((flags1: bool, flags2: bool), expr: SynExpr, range: range, trivia) ->
+        | SynExpr.YieldOrReturn((flags1: bool, flags2: bool), expr: SynExpr, range: range, trivia: SynExprYieldOrReturnTrivia) ->
             acc
             |> analyzeExpression expr
         
-        | SynExpr.YieldOrReturnFrom((flags1: bool, flags2: bool), expr: SynExpr, range: range, trivia) ->
+        | SynExpr.YieldOrReturnFrom((flags1: bool, flags2: bool), expr: SynExpr, range: range, trivia: SynExprYieldOrReturnFromTrivia) ->
             acc
             |> analyzeExpression expr
         
-        | SynExpr.LetOrUseBang(bindDebugPoint: DebugPointAtBinding, isUse: bool, isFromSource: bool, pat: SynPat, rhs: SynExpr, andBangs: SynExprAndBang list, body: SynExpr, range: range, trivia) ->
+        | SynExpr.LetOrUseBang(bindDebugPoint: DebugPointAtBinding, isUse: bool, isFromSource: bool, pat: SynPat, rhs: SynExpr, andBangs: SynExprAndBang list, body: SynExpr, range: range, trivia: SynExprLetOrUseBangTrivia) ->
             acc
             |> analyzePattern pat
             |> analyzeExpression rhs
             |> analyzeExpressions (andBangs |> List.map (function SynExprAndBang(_, _, _, _, expr, _, _) -> expr))
             |> analyzeExpression body
         
-        | SynExpr.MatchBang(matchDebugPoint: DebugPointAtBinding, expr: SynExpr, clauses: SynMatchClause list, range: range, trivia) ->
+        | SynExpr.MatchBang(matchDebugPoint: DebugPointAtBinding, expr: SynExpr, clauses: SynMatchClause list, range: range, trivia: SynExprMatchBangTrivia) ->
             acc
             |> analyzeExpression expr
             |> analyzeExpressions (clauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
-        | SynExpr.DoBang(expr: SynExpr, range: range, trivia) ->
+        | SynExpr.DoBang(expr: SynExpr, range: range, trivia: SynExprDoBangTrivia) ->
             acc
             |> analyzeExpression expr
         
@@ -660,14 +649,14 @@ module CompleteASTPatterns =
         | SynModuleDecl.ModuleAbbrev(ident: Ident, longId: LongIdent, range: range) ->
             acc
         
-        | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia) ->
+        | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia: SynModuleDeclNestedModuleTrivia) ->
             acc
             |> analyzeModuleDecls decls
         
         // === ATTRIBUTES ===
         | SynModuleDecl.Attributes(attributes: SynAttributes, range: range) ->
             acc
-            |> analyzeExpressions (extractAttributes attributes |> List.map (fun attr -> attr.ArgExpr))
+            |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
         
         // === HASH DIRECTIVES ===
         | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
@@ -712,12 +701,12 @@ module CompleteASTPatterns =
     /// <returns>List of analysis messages for any issues found</returns>
     and analyzeBinding (binding: SynBinding) (acc: Message list) : Message list =
         let analyzeExpressions = createListAnalyzer analyzeExpression
-        let analyzeOptionalReturnInfo = createOptionAnalyzer analyzeReturnInfo
+        let analyzeOptionalReturnInfo = createOptionAnalyzer analyzeBindingReturnInfo
             
         match binding with
         | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
             acc
-            |> analyzeExpressions (extractAttributes attrs |> List.map (fun attr -> attr.ArgExpr))
+            |> analyzeExpressions (attrs |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzePattern headPat
             |> analyzeOptionalReturnInfo returnInfo
             |> analyzeExpression expr
@@ -745,14 +734,14 @@ module CompleteASTPatterns =
     /// <param name="returnInfo">The F# binding return info syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeReturnInfo (returnInfo: SynBindingReturnInfo) (acc: Message list) : Message list =
+    and analyzeBindingReturnInfo (returnInfo: SynBindingReturnInfo) (acc: Message list) : Message list =
         let analyzeExpressions = createListAnalyzer analyzeExpression
             
         match returnInfo with
         | SynBindingReturnInfo(typeName: SynType, range: range, attributes: SynAttributes, trivia: SynBindingReturnInfoTrivia) ->
             acc
             |> analyzeType typeName
-            |> analyzeExpressions (extractAttributes attributes |> List.map (fun attr -> attr.ArgExpr))
+            |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
     
     /// <summary>
     /// Sample analyzer that uses the complete SynExpr pattern matching
