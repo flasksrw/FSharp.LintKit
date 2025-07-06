@@ -69,33 +69,30 @@ This tool aims to serve as a guardrail for AI code generation in the future.
 
 ---
 
-## LintKit.AnalyzerPatterns Project
-**Purpose**: AST Analysis Pattern Reference for AI Code Generation
+## AI-Optimized Template System
+**Purpose**: Complete AST Analysis Pattern Reference for AI Code Generation
 
-The LintKit.AnalyzerPatterns project serves as a comprehensive reference implementation collection for F# AST analysis patterns. It is **NOT** a required dependency for LintKit.CLI, but rather a learning resource for developers (including AI agents) who want to create custom analyzers.
+The template system provides a comprehensive foundation for F# AST analysis patterns. All knowledge is consolidated into the `CustomAnalyzer.fs` template file, making it the single source of truth for AI agents implementing custom analyzers.
 
 ### Key Characteristics:
 - **AI-Optimized Code Examples**: All code includes detailed type annotations and explicit pattern matching for AI agents to learn from
 - **Complete AST Coverage**: Demonstrates how to handle all major SynExpr, SynPat, and other F# Compiler syntax tree nodes
 - **Best Practices**: Shows proper use of Severity levels, message creation, and range handling
-- **Self-Contained**: Each analyzer file is a complete, working example that can be copied and modified
+- **Self-Contained**: The template is a complete, working example that can be copied and modified
 
-### Sample Implementation Areas:
-- **Working Analyzer Example** (SimpleAnalyzerExample.fs - TODO detection with full implementation)
-- **Working Test Patterns** (SimpleAnalyzerExampleTests.fs - correct FSharp.Analyzers.SDK.Testing usage)
-- **Complete AST pattern matching reference** (CompleteASTPatterns.fs - THE DEFINITIVE consolidated F# syntax tree pattern collection):
-  - SynExpr patterns (all 73 expression types with detailed type annotations)
-  - SynModuleDecl patterns (all 10 module declarations: let, type, open, nested modules)
-  - SynPat patterns (all 20 pattern matching constructs)
-  - SynType patterns (all 23 type expressions and annotations)
-  - SynArgPats, SynBinding, SynInterfaceImpl, SynBindingReturnInfo analysis
-  - Complete mutual recursion between all AST analyzer functions
-  - **Integrated identifier extraction techniques** (function names, variable names, module names)
-  - **Integrated package reference detection** (external library usage patterns like Assert.True, Console.WriteLine)
-  - **Integrated attribute analysis** (custom attributes detection, count validation, specific attribute patterns)
-  - **Integrated type annotation guidance** (presence/absence checking, redundancy detection, clarity validation)
-  - **Integrated severity level guidelines** (Error/Warning/Info/Hint with concrete examples and escalation patterns)
-  - **Comprehensive rule examples** for all major F# constructs with practical hints
+### Complete AST Pattern Reference (CustomAnalyzer.fs):
+- **SynExpr patterns** (all 73 expression types with detailed type annotations)
+- **SynModuleDecl patterns** (all 10 module declarations: let, type, open, nested modules)
+- **SynPat patterns** (all 20 pattern matching constructs)
+- **SynType patterns** (all 23 type expressions and annotations)
+- **SynArgPats, SynBinding, SynInterfaceImpl, SynBindingReturnInfo analysis**
+- **Complete mutual recursion between all AST analyzer functions**
+- **Integrated identifier extraction techniques** (function names, variable names, module names)
+- **Integrated package reference detection** (external library usage patterns like Assert.True, Console.WriteLine)
+- **Integrated attribute analysis** (custom attributes detection, count validation, specific attribute patterns)
+- **Integrated type annotation guidance** (presence/absence checking, redundancy detection, clarity validation)
+- **Integrated severity level guidelines** (Error/Warning/Info/Hint with concrete examples and escalation patterns)
+- **Comprehensive rule examples** for all major F# constructs with practical hints
 
 ### Usage:
 1. **For Human Developers**: Reference implementations to understand F# AST analysis
@@ -103,8 +100,8 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
 3. **For Learning**: Progressive examples from simple to complex AST operations
 
 ### Working Implementation Examples:
-- **SimpleAnalyzerExample.fs**: Complete TODO detection analyzer with proper error handling
-- **SimpleAnalyzerExampleTests.fs**: Working test suite using correct FSharp.Analyzers.SDK.Testing patterns
+- **CustomAnalyzer.fs**: Complete AST analysis template with all patterns integrated
+- **CustomAnalyzerTests.fs**: Working test suite using correct FSharp.Analyzers.SDK.Testing patterns
 - **Critical Testing Pattern**: `mkOptionsFromProject "net9.0" [] |> Async.AwaitTask` for proper async setup
 
 ---
@@ -118,20 +115,17 @@ The LintKit.AnalyzerPatterns project serves as a comprehensive reference impleme
       AnalyzerLoader.fs            # Load analyzers from DLLs
       Runner.fs                    # Actual lint execution logic
       Output.fs                    # SARIF/Text output processing
-    /LintKit.AnalyzerPatterns      # AI-optimized AST analysis pattern reference
-      SimpleAnalyzerExample.fs       # Working analyzer example with TODO detection
-      CompleteASTPatterns.fs         # THE DEFINITIVE consolidated F# AST analysis reference with all integrated knowledge:
-                                     # - Complete AST pattern matching (SynExpr, SynModuleDecl, SynPat, SynType)
-                                     # - Integrated identifier extraction techniques
-                                     # - Integrated package reference detection  
-                                     # - Integrated attribute analysis patterns
-                                     # - Integrated type annotation guidance
-                                     # - Integrated severity level guidelines (Error/Warning/Info/Hint)
   /templates                       # Templates for custom rules
     /MyCustomAnalyzer
       /MyCustomAnalyzer.fsproj
-      /SampleAnalyzer.fs
-      /SampleAnalyzer.Tests.fsproj
+      /CustomAnalyzer.fs           # THE DEFINITIVE consolidated F# AST analysis reference with all integrated knowledge:
+                                   # - Complete AST pattern matching (SynExpr, SynModuleDecl, SynPat, SynType)
+                                   # - Integrated identifier extraction techniques
+                                   # - Integrated package reference detection  
+                                   # - Integrated attribute analysis patterns
+                                   # - Integrated type annotation guidance
+                                   # - Integrated severity level guidelines (Error/Warning/Info/Hint)
+      /CustomAnalyzerTests.fs      # Working test suite using correct FSharp.Analyzers.SDK.Testing patterns
   /tests
     /LintKit.Tests
 README.md
@@ -174,7 +168,7 @@ The LintKit system is designed to enable full AI automation of custom rule imple
 
 ### Benefits:
 - **Zero Manual Coding**: Rules implemented entirely by AI based on specifications
-- **Consistent Quality**: All implementations follow established patterns from LintKit.AnalyzerPatterns
+- **Consistent Quality**: All implementations follow established patterns from CustomAnalyzer.fs template
 - **Comprehensive Testing**: AI generates thorough test coverage automatically
 - **Rapid Development**: From specification to working analyzer in minutes
 

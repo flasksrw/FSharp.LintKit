@@ -5,7 +5,6 @@
     <Platform Name="x86" />
   </Configurations>
   <Folder Name="/src/">
-    <Project Path="src/LintKit.AnalyzerPatterns/LintKit.AnalyzerPatterns.fsproj" />
     <Project Path="src/LintKit.CLI/LintKit.CLI.fsproj" />
     <Project Path="tests/LintKit.Tests/LintKit.Tests.fsproj" />
   </Folder>

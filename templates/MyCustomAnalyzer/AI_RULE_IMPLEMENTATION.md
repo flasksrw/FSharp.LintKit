@@ -51,17 +51,10 @@ Each rule should be specified with:
 ## PATTERN REFERENCES
 
 ### Essential Resources
-**⚠️ CRITICAL: Always examine these resources first when implementing analyzers**
+**⚠️ CRITICAL: All patterns are available in the template files**
 
-Reference these existing implementations for patterns:
-- **Working Example (REQUIRED)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SimpleAnalyzerExample.fs
-  - Complete TODO detection analyzer implementation
-  - Shows proper [<CliAnalyzer>] attribute usage
-  - Demonstrates correct FSharp.Analyzers.SDK patterns
-  - Contains error handling and async structure examples
-  - **Use this as your primary template for analyzer structure**
-
-- **Complete AST Patterns (REQUIRED for thorough analysis)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/CompleteASTPatterns.fs
+Reference these template files for patterns:
+- **Complete AST Patterns (INCLUDED)**: CustomAnalyzer.fs
   - THE DEFINITIVE consolidated F# AST analysis reference with all integrated knowledge
   - Complete AST pattern matching (SynExpr, SynModuleDecl, SynPat, SynType - all patterns)
   - Integrated identifier extraction, package reference detection, attribute analysis
@@ -69,18 +62,17 @@ Reference these existing implementations for patterns:
   - Uses State<'TState> pattern for extensible analysis with user state
   - **Use this as your primary AST analysis reference - contains all patterns in one place**
 
-- **Working Tests (REQUIRED)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
+- **Working Tests (INCLUDED)**: CustomAnalyzerTests.fs
   - Correct FSharp.Analyzers.SDK.Testing usage
   - Critical pattern: `mkOptionsFromProject |> Async.AwaitTask`
   - Shows proper async test structure and assertions
   - **Use this as your primary template for test structure**
 
-- **Package Reference Pattern (for external dependencies)**: ConsultCompleteASTPatterns.fs for package detection patterns
-  - Package reference detection is integrated into CompleteASTPatterns.fs
+- **Package Reference Pattern (INCLUDED)**: CustomAnalyzerTests.fs includes package detection patterns
   - For testing with external packages, use package records: `{ Name = "xunit"; Version = "2.9.2" }`
   - **Use when test code contains [<Fact>], Assert.Equal, or custom libraries**
 
-- **🎯 SINGLE COMPREHENSIVE REFERENCE**: CompleteASTPatterns.fs consolidates all AST analysis knowledge
+- **🎯 SINGLE COMPREHENSIVE REFERENCE**: CustomAnalyzer.fs consolidates all AST analysis knowledge
   - **All SynExpr patterns** (73 expression types): function calls, if-then-else, match, let bindings, etc.
   - **All SynModuleDecl patterns** (10 module declarations): let bindings, type definitions, open statements, nested modules
   - **All SynPat patterns** (20 pattern constructs): match patterns, let binding patterns, tuple patterns, etc.
@@ -91,17 +83,10 @@ Reference these existing implementations for patterns:
     - Attribute analysis (custom attributes, count validation, specific attribute patterns)
     - Type annotation guidance (presence/absence checking, redundancy detection)
     - Severity level guidelines (Error/Warning/Info/Hint with concrete examples)
-  - **⚠️ Use CompleteASTPatterns.fs as your single source of truth for all AST analysis**
-
-- **Template Structure (REFERENCE)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer
-  - Project file templates and structure
-  - Directory organization examples
-  - **Use for project setup and organization**
+  - **⚠️ Use CustomAnalyzer.fs as your single source of truth for all AST analysis**
 
 ### Key Pattern Categories
-- **Working Analyzer**: SimpleAnalyzerExample.fs shows complete implementation with TODO detection
-- **Working Tests**: SimpleAnalyzerExampleTests.fs shows correct FSharp.Analyzers.SDK.Testing usage
-- **🎯 Complete AST Reference**: CompleteASTPatterns.fs - THE DEFINITIVE consolidated reference containing:
+- **🎯 Complete AST Reference**: CustomAnalyzer.fs - THE DEFINITIVE consolidated reference containing:
   - All SynExpr patterns (73 expression types) with complete type matching
   - All SynModuleDecl patterns (10 module-level declarations: let, type, open, nested modules)
   - All SynPat patterns (20 pattern matching constructs in match expressions and let bindings)
@@ -244,9 +229,8 @@ Common packages:
 3. **CustomAnalyzerTests.fs** - Contains the test file template structure
 
 ### Analyzer Structure Reference
-- Study **SimpleAnalyzerExample.fs** for complete analyzer implementation patterns
 - **EDIT** the existing `CustomAnalyzer.fs` following the established structure
-- The template already includes [<CliAnalyzer>] attribute and proper error handling structure
+- The template already includes complete AST patterns and proper error handling structure
 
 ## QUALITY CHECKLIST
 

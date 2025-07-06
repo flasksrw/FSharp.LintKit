@@ -18,12 +18,12 @@ namespace MyCustomAnalyzer.Tests
 open FSharp.Analyzers.SDK.Testing
 // 🤖 UPDATE THIS IMPORT (FOR YOU): Change to your specific analyzer module
 // Example: open MyCustomAnalyzer.NoHardcodedStringsAnalyzer
-open MyCustomAnalyzer.TemplateAnalyzer
+open MyCustomAnalyzer.CustomAnalyzer
 open Xunit
 
 // 🤖 RENAME THIS MODULE (FOR YOU): Match your analyzer name
 // Example: NoHardcodedStringsAnalyzerTests, RequireTypeAnnotationsAnalyzerTests
-module TemplateAnalyzerTests =
+module CustomAnalyzerTests =
     
     /// <summary>
     /// EDIT THIS TEST: Replace TODO with positive test case for your analyzer
@@ -53,7 +53,7 @@ let placeholder = "Replace with actual test code"
             
             let ctx = getContext projectOptions source
             // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
-            let! msgs = templateAnalyzer ctx
+            let! msgs = contextAnalyzer ctx
             
             // 🤖 EDIT THIS (FOR YOU): Replace with actual assertions
             // Example assertions:
@@ -88,7 +88,7 @@ let validCode = "Replace with code that should pass"
             
             let ctx = getContext projectOptions source
             // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
-            let! msgs = templateAnalyzer ctx
+            let! msgs = contextAnalyzer ctx
             
             // 🤖 EDIT THIS (FOR YOU): For negative tests, typically expect empty results
             // Assert.Empty(msgs)
@@ -117,8 +117,82 @@ module TestModule
             
             let ctx = getContext projectOptions source
             // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
-            let! msgs = templateAnalyzer ctx
+            let! msgs = contextAnalyzer ctx
             
             // Should not crash and return a valid result
             Assert.NotNull(msgs)
+        }
+
+    /// <summary>
+    /// **🤖 CRITICAL PATTERN (FOR YOU)**: Testing with external package references
+    /// **COPY THIS PATTERN**: When your test code uses external packages like xUnit, FSharp.Data, etc.
+    /// Key: Use package records with Name and Version in mkOptionsFromProject
+    /// </summary>
+    [<Fact>]
+    let ``Should work with external package references like xUnit`` () =
+        async {
+            // 🤖 CRITICAL PATTERN (FOR YOU): Include external packages when test source uses them
+            let! projectOptions =
+                mkOptionsFromProject
+                    "net8.0"
+                    [
+                        { Name = "xunit"; Version = "2.9.2" }
+                        // 🤖 ADD MORE PACKAGES AS NEEDED (FOR YOU):
+                        // { Name = "FSharp.Data"; Version = "6.4.0" }
+                        // { Name = "Newtonsoft.Json"; Version = "13.0.3" }
+                    ]
+                |> Async.AwaitTask
+            
+            let source = """
+module TestModule
+open Xunit
+
+[<Fact>]
+let ``Example test function`` () =
+    // 🤖 EDIT THIS (FOR YOU): Replace with code that should trigger your rule
+    let testCode = "Replace with actual test code"
+    Assert.True(true)
+"""
+            
+            let ctx = getContext projectOptions source
+            // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
+            let! msgs = contextAnalyzer ctx
+            
+            // 🤖 EDIT THIS (FOR YOU): Verify your analyzer works even with external packages
+            // Should analyze code correctly regardless of external package usage
+            Assert.NotNull(msgs)
+            // Add specific assertions based on your rule:
+            // Assert.NotEmpty(msgs) // if your rule should trigger
+            // Assert.Empty(msgs)    // if your rule should not trigger
+        }
+
+    /// <summary>
+    /// **🤖 ESSENTIAL PATTERN (FOR YOU)**: Testing without packages (baseline)
+    /// **COPY THIS PATTERN**: Verify analyzer works correctly without external dependencies
+    /// </summary>
+    [<Fact>]
+    let ``Should work without external packages`` () =
+        async {
+            let! projectOptions =
+                mkOptionsFromProject
+                    "net8.0"
+                    []  // Empty packages list - no external dependencies
+                |> Async.AwaitTask
+            
+            let source = """
+module TestModule
+
+let simpleFunction () =
+    // 🤖 EDIT THIS (FOR YOU): Replace with code that should trigger your rule
+    let result = "Replace with actual test code"
+    result
+"""
+            
+            let ctx = getContext projectOptions source
+            // 🤖 UPDATE THIS (FOR YOU): Change to your analyzer function name
+            let! msgs = contextAnalyzer ctx
+            
+            // 🤖 EDIT THIS (FOR YOU): Basic functionality test without external packages
+            Assert.NotNull(msgs)
+            // Add specific assertions based on your rule
         }
