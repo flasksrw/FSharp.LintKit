@@ -29,6 +29,34 @@ module CustomAnalyzer =
 
     /// <summary>
     /// State type for stateful AST analysis with generic user state
+    /// 
+    /// **HIERARCHICAL ANALYSIS DESIGN PATTERNS**:
+    /// 
+    /// **Stack-Based Context Tracking**:
+    /// - Use UserState to maintain context stacks (function calls, scopes, nesting levels)
+    /// - Push context on entry, pop on exit: `{ stack = item :: state.stack }` / `{ stack = List.tail state.stack }`
+    /// - Example: Track call chains like f(g(x)) -> ["f"; "g"] stack
+    /// 
+    /// **Visitor Pattern with Accumulator**:
+    /// - Thread state through recursive calls: `state |> analyzeChild1 |> analyzeChild2`
+    /// - Use fold patterns for collections: `List.fold analyzeItem state items`
+    /// - Maintain traversal order: pre-order (parent first) vs post-order (children first)
+    /// 
+    /// **Common UserState Patterns**:
+    /// - Symbol tables: `Map<string, SymbolInfo>` for identifier tracking
+    /// - Scope stacks: `ScopeInfo list` for nested binding contexts
+    /// - Call depth: `int` for recursion/nesting level detection
+    /// - Parent context: `ASTNode option` for upward traversal information
+    /// 
+    /// **Example UserState for Complex Analysis**:
+    /// ```fsharp
+    /// type MyAnalysisState = {
+    ///     CallStack: string list          // Current function call chain
+    ///     ScopeStack: Scope list          // Nested scope contexts  
+    ///     SymbolTable: Map<string, Info>  // Available identifiers
+    ///     NestingLevel: int              // Current depth level
+    /// }
+    /// ```
     /// </summary>
     type State<'TState> = {
         Messages: Message list
@@ -479,14 +507,23 @@ module CustomAnalyzer =
         
         // === FUNCTION APPLICATION ===
         | SynExpr.App(flag: ExprAtomicFlag, isInfix: bool, funcExpr: SynExpr, argExpr: SynExpr, range: range) ->
+            // **HIERARCHICAL ANALYSIS PATTERN**: Function applications can be deeply nested: f (g (h x)) y
+            // **STACK-BASED TRACKING**: Use UserState to track call chains, nesting depth, argument positions
+            // **DESIGN CHOICES**:
+            // - Pre-order: Analyze function first, then arguments (good for call validation)
+            // - Post-order: Analyze arguments first, then function (good for data flow analysis)
+            // - Context tracking: Push function name to stack, analyze children, pop on exit
+            // 
+            // **IMPLEMENTATION PATTERNS**:
+            // ```fsharp
+            // // Push context: let newState = { state.UserState with CallStack = funcName :: state.UserState.CallStack }
+            // // Analyze children: |> analyzeExpression funcExpr |> analyzeExpression argExpr  
+            // // Pop context: { finalState with UserState = { finalState.UserState with CallStack = List.tail finalState.UserState.CallStack }}
+            // ```
+            //
             // IDENTIFIER EXTRACTION: Function call detection from funcExpr, especially for external package usage
             // CUSTOM RULE EXAMPLES: Assert.True detection, external API usage validation, deprecated method checks
             // ACCESS PATTERN: match funcExpr with SynExpr.LongIdent(_, SynLongIdent([module; func], _, _), _, _) -> module.idText, func.idText
-            // PACKAGE REFERENCE DETECTION: Check for external library calls like Assert.True, Console.WriteLine etc.
-            // SEVERITY USAGE: Error for dangerous function calls (failwith, division by zero, unsafe operations)
-            //                 Warning for performance issues (List.append in loops, Console.WriteLine in production)
-            //                 Info for style improvements (functional programming suggestions, better collections)
-            //                 Hint for advanced optimizations (Array vs List performance, function composition)
             state
             |> analyzeExpression funcExpr
             |> analyzeExpression argExpr
