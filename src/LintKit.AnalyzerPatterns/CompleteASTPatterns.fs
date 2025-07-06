@@ -27,10 +27,30 @@ open FSharp.Compiler.Xml
 /// </summary>
 module CompleteASTPatterns =
 
+    /// <summary>
+    /// State type for stateful AST analysis with generic user state
+    /// </summary>
+    type State<'TState> = {
+        Messages: Message list
+        UserState: 'TState
+    }
+
+    /// <summary>
+    /// Creates initial state with empty messages and provided user state
+    /// </summary>
+    let createState<'TState> (initialUserState: 'TState) : State<'TState> =
+        { Messages = []; UserState = initialUserState }
+
+    /// <summary>
+    /// Adds a message to the current state
+    /// </summary>
+    let addMessage<'TState> (message: Message) (state: State<'TState>) : State<'TState> =
+        { state with Messages = message :: state.Messages }
+
     let flip f x y = f y x
     let trd (_, _, a) = a
-    let createListAnalyzer<'a> (analyzer: 'a -> list<Message> -> list<Message>) = flip (List.fold (flip analyzer))
-    let createOptionAnalyzer<'a> (analyzer: 'a -> list<Message> -> list<Message>) = Option.map analyzer >> Option.defaultValue id
+    let createListAnalyzer<'a, 'TState> (analyzer: 'a -> State<'TState> -> State<'TState>) = flip (List.fold (flip analyzer))
+    let createOptionAnalyzer<'a, 'TState> (analyzer: 'a -> State<'TState> -> State<'TState>) = Option.map analyzer >> Option.defaultValue id
 
     /// <summary>
     /// Analyzes a SynType with complete pattern matching using accumulator pattern
@@ -39,7 +59,7 @@ module CompleteASTPatterns =
     /// <param name="synType">The F# type syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzeType (synType: SynType) (acc: Message list) : Message list =
+    let rec analyzeType<'TState> (synType: SynType) (acc: State<'TState>) : State<'TState> =
         let analyzeTypes = createListAnalyzer analyzeType
         let analyzeExpressions = createListAnalyzer analyzeExpression
         
@@ -152,9 +172,9 @@ module CompleteASTPatterns =
     /// <param name="pat">The F# pattern syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzePattern (pat: SynPat) (acc: Message list) : Message list =
+    and analyzePattern<'TState> (pat: SynPat) (acc: State<'TState>) : State<'TState> =
         let analyzePatterns = createListAnalyzer analyzePattern
-        let analyzeArgPats (argPats: SynArgPats) (acc: Message list) : Message list = 
+        let analyzeArgPats (argPats: SynArgPats) (acc: State<'TState>) : State<'TState> = 
             match argPats with
             | SynArgPats.Pats(pats: SynPat list) ->
                 acc
@@ -255,7 +275,7 @@ module CompleteASTPatterns =
     /// <param name="expr">Expression to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>Updated accumulator with messages from this expression and all sub-expressions</returns>
-    and analyzeExpression (expr: SynExpr) (acc: Message list) : Message list =
+    and analyzeExpression<'TState> (expr: SynExpr) (acc: State<'TState>) : State<'TState> =
         let analyzeOptionalExpression = createOptionAnalyzer analyzeExpression
         let analyzeExpressions = createListAnalyzer analyzeExpression
         let analyzeTypes = createListAnalyzer analyzeType
@@ -621,7 +641,7 @@ module CompleteASTPatterns =
     /// <param name="decl">The F# module declaration syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeModuleDecl (decl: SynModuleDecl) (acc: Message list) : Message list =
+    and analyzeModuleDecl<'TState> (decl: SynModuleDecl) (acc: State<'TState>) : State<'TState> =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDecl
         let analyzeBindings = createListAnalyzer analyzeBinding
         let analyzeExpressions = createListAnalyzer analyzeExpression
@@ -679,7 +699,7 @@ module CompleteASTPatterns =
     /// <param name="moduleOrNs">The F# module or namespace syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeSynModuleOrNamespace (moduleOrNs: SynModuleOrNamespace) (acc: Message list) : Message list =
+    and analyzeSynModuleOrNamespace<'TState> (moduleOrNs: SynModuleOrNamespace) (acc: State<'TState>) : State<'TState> =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDecl
         
         match moduleOrNs with
@@ -699,7 +719,7 @@ module CompleteASTPatterns =
     /// <param name="binding">The F# binding syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeBinding (binding: SynBinding) (acc: Message list) : Message list =
+    and analyzeBinding<'TState> (binding: SynBinding) (acc: State<'TState>) : State<'TState> =
         let analyzeExpressions = createListAnalyzer analyzeExpression
         let analyzeOptionalReturnInfo = createOptionAnalyzer analyzeBindingReturnInfo
             
@@ -718,7 +738,7 @@ module CompleteASTPatterns =
     /// <param name="interfaceImpl">The F# interface implementation syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeSynInterfaceImpl (interfaceImpl: SynInterfaceImpl) (acc: Message list) : Message list =
+    and analyzeSynInterfaceImpl<'TState> (interfaceImpl: SynInterfaceImpl) (acc: State<'TState>) : State<'TState> =
         let analyzeBindings = createListAnalyzer analyzeBinding
         
         match interfaceImpl with
@@ -734,7 +754,7 @@ module CompleteASTPatterns =
     /// <param name="returnInfo">The F# binding return info syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeBindingReturnInfo (returnInfo: SynBindingReturnInfo) (acc: Message list) : Message list =
+    and analyzeBindingReturnInfo<'TState> (returnInfo: SynBindingReturnInfo) (acc: State<'TState>) : State<'TState> =
         let analyzeExpressions = createListAnalyzer analyzeExpression
             
         match returnInfo with
@@ -758,8 +778,10 @@ module CompleteASTPatterns =
                     match parseResults.ParseTree with
                     | ParsedInput.ImplFile(ParsedImplFileInput(_, _, _, _, _, contents, _, _, _)) ->
                         let analyzeContents = createListAnalyzer analyzeSynModuleOrNamespace
-                        return [] |> analyzeContents contents |> List.rev
-                    | ParsedInput.SigFile(_) ->
+                        let initialState = createState ()
+                        let finalState = analyzeContents contents initialState
+                        return finalState.Messages |> List.rev
+                    | ParsedInput.SigFile _ ->
                         // Signature files don't contain expressions to analyze
                         return []
                         
