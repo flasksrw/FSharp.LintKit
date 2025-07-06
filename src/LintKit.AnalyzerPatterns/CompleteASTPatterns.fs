@@ -100,6 +100,9 @@ module CompleteASTPatterns =
         
         // === ANONYMOUS RECORD TYPES ===
         | SynType.AnonRecd(isStruct: bool, fields: (Ident * SynType) list, range: range) ->            
+            // IDENTIFIER EXTRACTION: Anonymous record field names from fields |> List.map fst to get Ident list, use idText for field names
+            // CUSTOM RULE EXAMPLES: Field naming conventions, required field validation, type consistency checks
+            // ACCESS PATTERN: fields |> List.map (fun (fieldName, fieldType) -> fieldName.idText, fieldType)
             state
             |> analyzeTypes (fields |> List.map snd)
         
@@ -193,6 +196,9 @@ module CompleteASTPatterns =
             state
         
         | SynPat.Named(ident: SynIdent, isThisVal: bool, accessibility: SynAccess option, range: range) ->
+            // IDENTIFIER EXTRACTION: Variable/function name from ident.idText, position from ident.idRange
+            // CUSTOM RULE EXAMPLES: Naming convention checks, forbidden name validation, camelCase/PascalCase verification
+            // ACCESS PATTERN: let name = ident.idText; let range = ident.idRange
             state
         
         | SynPat.Typed(pat: SynPat, targetType: SynType, range: range) ->
@@ -211,11 +217,17 @@ module CompleteASTPatterns =
             |> analyzePatterns elementPats
         
         | SynPat.Record(fieldPats: ((LongIdent * Ident) * range option * SynPat) list, range: range) ->            
+            // IDENTIFIER EXTRACTION: Record field names during pattern matching from fieldPats |> List.map (fun ((longId, fieldName), _, _) -> longId, fieldName.idText)
+            // CUSTOM RULE EXAMPLES: Record destructuring patterns, field access validation, required field checks
+            // ACCESS PATTERN: fieldPats |> List.map (fun ((qualifiedName, field), _, pattern) -> qualifiedName |> List.map (fun i -> i.idText), field.idText, pattern)
             state
             |> analyzePatterns (fieldPats |> List.map trd)
 
         // === IDENTIFIER PATTERNS ===
         | SynPat.LongIdent(longDotId: SynLongIdent, extraId: Ident option, typarDecls: SynValTyparDecls option, argPats: SynArgPats, accessibility: SynAccess option, range: range) ->
+            // IDENTIFIER EXTRACTION: Qualified/function names from longDotId.LongIdent as Ident list, use idText for each element
+            // CUSTOM RULE EXAMPLES: Module qualified name checks, function naming rule validation
+            // ACCESS PATTERN: longDotId.LongIdent |> List.map (fun id -> id.idText)
             state
             |> analyzeArgPats argPats
         
@@ -251,6 +263,9 @@ module CompleteASTPatterns =
             state
         
         | SynPat.OptionalVal(ident: Ident, range: range) ->
+            // IDENTIFIER EXTRACTION: Optional value name from ident.idText for optional variable names
+            // CUSTOM RULE EXAMPLES: Optional value naming conventions, optional pattern usage validation
+            // ACCESS PATTERN: let optionalVarName = ident.idText; let range = ident.idRange
             state
         
         | SynPat.IsInst(targetType: SynType, range: range) ->
@@ -262,6 +277,9 @@ module CompleteASTPatterns =
             |> analyzeExpression expr
         
         | SynPat.InstanceMember(thisId: Ident, memberId: Ident, toolId: Ident option, accessibility: SynAccess option, range: range) ->
+            // IDENTIFIER EXTRACTION: Instance member names from thisId.idText for this name, memberId.idText for member name
+            // CUSTOM RULE EXAMPLES: Instance member naming conventions, this reference patterns, accessibility checks
+            // ACCESS PATTERN: let thisName = thisId.idText; let memberName = memberId.idText
             state
         
         | SynPat.FromParseError(pat: SynPat, range: range) ->
@@ -310,6 +328,9 @@ module CompleteASTPatterns =
             |> analyzeExprs exprs
         
         | SynExpr.AnonRecd(isStruct: bool, copyInfo: (SynExpr * BlockSeparator) option, recordFields: (SynLongIdent * range option * SynExpr) list, range: range, trivia: SynExprAnonRecdTrivia) ->            
+            // IDENTIFIER EXTRACTION: Anonymous record field names during creation from recordFields |> List.map (fun (field, _, _) -> field.LongIdent)
+            // CUSTOM RULE EXAMPLES: Record creation patterns, field initialization validation, invalid value checks
+            // ACCESS PATTERN: recordFields |> List.map (fun (fieldName, _, value) -> fieldName.LongIdent |> List.map (fun i -> i.idText), value)
             state
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
             |> analyzeExpressions (recordFields |> List.map trd)
@@ -319,6 +340,9 @@ module CompleteASTPatterns =
             |> analyzeExpressions exprs
         
         | SynExpr.Record(baseInfo: (SynType * SynExpr * range * BlockSeparator option * range) option, copyInfo: (SynExpr * BlockSeparator) option, recordFields: SynExprRecordField list, range: range) ->
+            // IDENTIFIER EXTRACTION: Record field names during creation from recordFields SynExprRecordField(field, _, _, _)
+            // CUSTOM RULE EXAMPLES: Record update patterns, field assignment validation, copy syntax checks
+            // ACCESS PATTERN: recordFields |> List.map (function SynExprRecordField((fieldName, _), _, value, _) -> fieldName.LongIdent |> List.map (fun i -> i.idText), value)
             state
             |> analyzeOptionalExpression (baseInfo |> Option.map (fun (_, expr, _, _, _) -> expr))
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
@@ -343,6 +367,9 @@ module CompleteASTPatterns =
             |> analyzeExpression doExpr
         
         | SynExpr.For(forDebugPoint: DebugPointAtFor, toDebugPoint: DebugPointAtInOrTo, ident: Ident, equalsRange: range option, identBody: SynExpr, direction: bool, toBody: SynExpr, doBody: SynExpr, range: range) ->
+            // IDENTIFIER EXTRACTION: For loop variable name from ident.idText, position from ident.idRange
+            // CUSTOM RULE EXAMPLES: Loop variable naming conventions, variable scope checks, unused variable detection
+            // ACCESS PATTERN: let loopVar = ident.idText; let range = ident.idRange
             state
             |> analyzeExpression identBody
             |> analyzeExpression toBody
@@ -450,9 +477,15 @@ module CompleteASTPatterns =
             state
         
         | SynExpr.Ident(ident: Ident) ->
+            // IDENTIFIER EXTRACTION: Identifier name from ident.idText, position from ident.idRange
+            // CUSTOM RULE EXAMPLES: Variable/function name rule checks, forbidden name validation
+            // ACCESS PATTERN: let name = ident.idText; let range = ident.idRange
             state
         
         | SynExpr.LongIdent(isOptional: bool, longDotId: SynLongIdent, altNameRefCell: SynSimplePatAlternativeIdInfo ref option, range: range) ->
+            // IDENTIFIER EXTRACTION: Qualified identifier from longDotId.LongIdent as Ident list, use idText for qualified names
+            // CUSTOM RULE EXAMPLES: Module reference checks, namespace usage validation, qualified naming rules
+            // ACCESS PATTERN: let qualifiedName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
             state
         
         | SynExpr.LongIdentSet(longDotId: SynLongIdent, expr: SynExpr, range: range) ->
@@ -461,6 +494,9 @@ module CompleteASTPatterns =
         
         // === MEMBER ACCESS ===
         | SynExpr.DotGet(expr: SynExpr, rangeOfDot: range, longDotId: SynLongIdent, range: range) ->
+            // IDENTIFIER EXTRACTION: Member access names from longDotId.LongIdent for accessed member names
+            // CUSTOM RULE EXAMPLES: Member access patterns, property usage validation, API design guidelines
+            // ACCESS PATTERN: let memberName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
             state
             |> analyzeExpression expr
         
@@ -469,6 +505,9 @@ module CompleteASTPatterns =
             |> analyzeExpression expr
         
         | SynExpr.DotSet(targetExpr: SynExpr, longDotId: SynLongIdent, rhsExpr: SynExpr, range: range) ->
+            // IDENTIFIER EXTRACTION: Member assignment names from longDotId.LongIdent for target member names
+            // CUSTOM RULE EXAMPLES: Immutable field assignment detection, mutability checks, property setting patterns
+            // ACCESS PATTERN: let memberName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
             state
             |> analyzeExpression targetExpr
             |> analyzeExpression rhsExpr
@@ -655,21 +694,40 @@ module CompleteASTPatterns =
         
         // === TYPE DEFINITIONS ===
         | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
+            // IDENTIFIER EXTRACTION: Type names from typeDefns list, get names from SynComponentInfo.longId
+            // TYPE KIND EXTRACTION: Use SynTypeDefnRepr to determine Record/Union/Class/Interface/Delegate
+            // CUSTOM RULE EXAMPLES: Type naming conventions, type hierarchy checks, inheritance constraint validation, record/union structure validation
+            // ACCESS PATTERN: typeDefns |> List.collect (fun (SynTypeDefn(ci, _, _, _, _, _)) -> match ci with SynComponentInfo(_, _, _, longId, _, _, _, _) -> longId)
+            // TYPE DEFINITION DETAILS: SynTypeDefn(componentInfo, typeRepr, members, implicitCtor, range, trivia)
             state
         
         // === EXCEPTION DEFINITIONS ===
         | SynModuleDecl.Exception(exnDefn: SynExceptionDefn, range: range) ->
+            // IDENTIFIER EXTRACTION: Exception names from exnDefn.Exception.SynComponentInfo.longId
+            // EXCEPTION FIELD EXTRACTION: Exception fields from exnDefn.Exception.SynUnionCase.fields
+            // CUSTOM RULE EXAMPLES: Exception naming conventions, exception hierarchy checks, custom exception structure validation
+            // ACCESS PATTERN: match exnDefn with SynExceptionDefn(SynExceptionDefnRepr(_, union, _, _, _, _), _, _, _, _, _) -> union
             state
         
         // === OPEN STATEMENTS ===
         | SynModuleDecl.Open(target: SynOpenDeclTarget, range: range) ->
+            // IDENTIFIER EXTRACTION: Import names from target for opened module/namespace names
+            // CUSTOM RULE EXAMPLES: Unnecessary import detection, import ordering checks, namespace usage rules
+            // ACCESS PATTERN: match target with SynOpenDeclTarget.ModuleOrNamespace(longId, _) -> longId |> List.map (fun i -> i.idText)
             state
         
         // === MODULE DECLARATIONS ===
         | SynModuleDecl.ModuleAbbrev(ident: Ident, longId: LongIdent, range: range) ->
+            // IDENTIFIER EXTRACTION: Module alias from ident.idText for alias, longId for full path
+            // CUSTOM RULE EXAMPLES: Module alias naming conventions, alias usage pattern validation
+            // ACCESS PATTERN: let alias = ident.idText; let fullPath = longId |> List.map (fun i -> i.idText)
             state
         
         | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia: SynModuleDeclNestedModuleTrivia) ->
+            // IDENTIFIER EXTRACTION: Nested module names from componentInfo.longId
+            // RECURSIVE MODULE DETECTION: Use isRecursive to determine mutual recursive modules
+            // CUSTOM RULE EXAMPLES: Nested module naming conventions, module hierarchy checks, recursive module validation
+            // ACCESS PATTERN: match componentInfo with SynComponentInfo(_, _, _, longId, _, _, _, _) -> longId |> List.map (fun i -> i.idText)
             state
             |> analyzeModuleDecls decls
         
@@ -704,6 +762,10 @@ module CompleteASTPatterns =
         
         match moduleOrNs with
         | SynModuleOrNamespace(longId: LongIdent, isRecursive: bool, kind: SynModuleOrNamespaceKind, decls: SynModuleDecl list, xmlDoc: PreXmlDoc, attribs: SynAttributes, accessibility: SynAccess option, range: range, trivia: SynModuleOrNamespaceTrivia) ->
+            // IDENTIFIER EXTRACTION: Module/namespace names from longId name list
+            // MODULE KIND DETECTION: Use kind to determine NamedModule/DeclaredNamespace etc.
+            // CUSTOM RULE EXAMPLES: Module naming conventions, namespace structure checks, attribute validation
+            // ACCESS PATTERN: let names = longId |> List.map (fun id -> id.idText)
             let kindStr = function
             | SynModuleOrNamespaceKind.NamedModule -> "named module"
             | SynModuleOrNamespaceKind.AnonModule -> "anonymous module" 
@@ -725,6 +787,10 @@ module CompleteASTPatterns =
             
         match binding with
         | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
+            // IDENTIFIER EXTRACTION: Function names from headPat extraction (SynPat.Named or SynPat.LongIdent)
+            // ATTRIBUTE EXTRACTION: Attribute information from attrs [<Attribute>] data
+            // CUSTOM RULE EXAMPLES: Function naming conventions, required attribute checks, accessibility validation
+            // ACCESS PATTERN: let attrs = attrs |> List.collect _.Attributes
             state
             |> analyzeExpressions (attrs |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzePattern headPat
