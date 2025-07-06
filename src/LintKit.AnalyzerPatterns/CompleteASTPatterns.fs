@@ -372,15 +372,15 @@ module CompleteASTPatterns =
             |> analyzeExpression expr
         
         | SynExpr.Lambda(fromMethod: bool, inLambdaSeq: bool, args: SynSimplePats, body: SynExpr, parsedData: (SynPat list * SynExpr) option, range: range, trivia: SynExprLambdaTrivia) ->
-            let accWithParsedData = 
-                match parsedData with
-                | Some (patterns, expr) ->
+            let analyzeParsedData =
+                let analyzeParsedData (patterns, expr) state =
                     state
                     |> analyzePatterns patterns
                     |> analyzeExpression expr
-                | None -> state
+                createOptionAnalyzer analyzeParsedData
             
-            accWithParsedData
+            state
+            |> analyzeParsedData parsedData
             |> analyzeExpression body
         
         | SynExpr.MatchLambda(isExnMatch: bool, keywordRange: range, matchClauses: SynMatchClause list, matchDebugPoint: DebugPointAtBinding, range: range) ->
