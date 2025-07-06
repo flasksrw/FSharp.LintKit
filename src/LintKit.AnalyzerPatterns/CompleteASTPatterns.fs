@@ -59,7 +59,7 @@ module CompleteASTPatterns =
     /// <param name="synType">The F# type syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzeType<'TState> (synType: SynType) (acc: State<'TState>) : State<'TState> =
+    let rec analyzeType<'TState> (synType: SynType) (state: State<'TState>) : State<'TState> =
         let analyzeTypes = createListAnalyzer analyzeType
         let analyzeExpressions = createListAnalyzer analyzeExpression
         
@@ -67,23 +67,23 @@ module CompleteASTPatterns =
         
         // === LONG IDENTIFIER TYPES ===
         | SynType.LongIdent(longDotId: SynLongIdent) ->
-            acc
+            state
         
         // === TYPE APPLICATIONS ===
         | SynType.App(typeName: SynType, lessRange: range option, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, isPostfix: bool, range: range) ->            
-            acc
+            state
             |> analyzeType typeName
             |> analyzeTypes typeArgs
         
         // === FUNCTION TYPES ===
         | SynType.Fun(argType: SynType, returnType: SynType, range: range, trivia: SynTypeFunTrivia) ->
-            acc
+            state
             |> analyzeType argType
             |> analyzeType returnType
         
         // === TUPLE TYPES ===
         | SynType.Tuple(isStruct: bool, path: SynTupleTypeSegment list, range: range) ->
-            acc
+            state
             |> analyzeTypes (path |> List.choose (function
                 | SynTupleTypeSegment.Type(typeName: SynType) -> Some typeName
                 | SynTupleTypeSegment.Star(_) -> None
@@ -91,79 +91,79 @@ module CompleteASTPatterns =
         
         // === ARRAY TYPES ===
         | SynType.Array(rank: int, elementType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType elementType
         
         // === TYPE VARIABLES ===
         | SynType.Var(typar: SynTypar, range: range) ->
-            acc
+            state
         
         // === ANONYMOUS RECORD TYPES ===
         | SynType.AnonRecd(isStruct: bool, fields: (Ident * SynType) list, range: range) ->            
-            acc
+            state
             |> analyzeTypes (fields |> List.map snd)
         
         // === LONG IDENTIFIER APP ===
         | SynType.LongIdentApp(typeName: SynType, longDotId: SynLongIdent, lessRange: range option, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, range: range) ->            
-            acc
+            state
             |> analyzeType typeName
             |> analyzeTypes typeArgs
         
         // === OTHER TYPE PATTERNS ===
         | SynType.Anon(range: range) ->
-            acc
+            state
         
         | SynType.StaticConstant(constant: SynConst, range: range) ->
-            acc
+            state
         
         | SynType.StaticConstantExpr(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynType.StaticConstantNamed(ident: SynType, value: SynType, range: range) ->
-            acc
+            state
             |> analyzeType ident
             |> analyzeType value
         
         | SynType.WithGlobalConstraints(typeName: SynType, constraints: SynTypeConstraint list, range: range) ->
-            acc
+            state
             |> analyzeType typeName
         
         | SynType.HashConstraint(innerType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType innerType
         
         | SynType.MeasurePower(baseMeasure: SynType, exponent: SynRationalConst, range: range) ->
-            acc
+            state
             |> analyzeType baseMeasure
         
         | SynType.StaticConstantNull(range: range) ->
-            acc
+            state
         
         | SynType.Paren(innerType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType innerType
         
         | SynType.WithNull(innerType: SynType, ambivalent: bool, range: range, trivia: SynTypeWithNullTrivia) ->
-            acc
+            state
             |> analyzeType innerType
         
         | SynType.SignatureParameter(attributes: SynAttributes, optional: bool, paramId: Ident option, usedType: SynType, range: range) ->
-            acc
+            state
             |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzeType usedType
         
         | SynType.Or(lhsType: SynType, rhsType: SynType, range: range, trivia: SynTypeOrTrivia) ->
-            acc
+            state
             |> analyzeType lhsType
             |> analyzeType rhsType
         
         | SynType.Intersection(typar: SynTypar option, types: SynType list, range: range, trivia: SynTyparDeclTrivia) ->            
-            acc
+            state
             |> analyzeTypes types
         
         | SynType.FromParseError(range: range) ->
-            acc
+            state
     
     /// <summary>
     /// Analyzes a SynPat with complete pattern matching using accumulator pattern
@@ -172,100 +172,100 @@ module CompleteASTPatterns =
     /// <param name="pat">The F# pattern syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzePattern<'TState> (pat: SynPat) (acc: State<'TState>) : State<'TState> =
+    and analyzePattern<'TState> (pat: SynPat) (state: State<'TState>) : State<'TState> =
         let analyzePatterns = createListAnalyzer analyzePattern
-        let analyzeArgPats (argPats: SynArgPats) (acc: State<'TState>) : State<'TState> = 
+        let analyzeArgPats (argPats: SynArgPats) (state: State<'TState>) : State<'TState> = 
             match argPats with
             | SynArgPats.Pats(pats: SynPat list) ->
-                acc
+                state
                 |> analyzePatterns pats
             | SynArgPats.NamePatPairs(pats: (Ident * range option * SynPat) list, range: range, trivia: SynArgPatsNamePatPairsTrivia) ->
-                acc
+                state
                 |> analyzePatterns (pats |> List.map trd)
         
         match pat with
         
         // === BASIC PATTERNS ===
         | SynPat.Const(constant: SynConst, range: range) ->
-            acc
+            state
         
         | SynPat.Wild(range: range) ->
-            acc
+            state
         
         | SynPat.Named(ident: SynIdent, isThisVal: bool, accessibility: SynAccess option, range: range) ->
-            acc
+            state
         
         | SynPat.Typed(pat: SynPat, targetType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType targetType
             |> analyzePattern pat
         
         // === COLLECTION PATTERNS ===
         | SynPat.Tuple(isStruct: bool, elementPats: SynPat list, commaRanges: range list, range: range) ->
-            acc
+            state
             |> analyzePatterns elementPats
         
         | SynPat.ArrayOrList(isArray: bool, elementPats: SynPat list, range: range) ->
             let patType = if isArray then "array" else "list"
-            acc
+            state
             |> analyzePatterns elementPats
         
         | SynPat.Record(fieldPats: ((LongIdent * Ident) * range option * SynPat) list, range: range) ->            
-            acc
+            state
             |> analyzePatterns (fieldPats |> List.map trd)
 
         // === IDENTIFIER PATTERNS ===
         | SynPat.LongIdent(longDotId: SynLongIdent, extraId: Ident option, typarDecls: SynValTyparDecls option, argPats: SynArgPats, accessibility: SynAccess option, range: range) ->
-            acc
+            state
             |> analyzeArgPats argPats
         
         | SynPat.Paren(pat: SynPat, range: range) ->
-            acc
+            state
             |> analyzePattern pat
         
         // === ADVANCED PATTERNS ===
         | SynPat.Attrib(pat: SynPat, attributes: SynAttributes, range: range) ->
-            acc
+            state
             |> analyzePattern pat
         
         | SynPat.Or(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia: SynPatOrTrivia) ->
-            acc
+            state
             |> analyzePattern lhsPat
             |> analyzePattern rhsPat
         
         | SynPat.ListCons(lhsPat: SynPat, rhsPat: SynPat, range: range, trivia: SynPatListConsTrivia) ->
-            acc
+            state
             |> analyzePattern lhsPat
             |> analyzePattern rhsPat
         
         | SynPat.Ands(pats: SynPat list, range: range) ->
-            acc
+            state
             |> analyzePatterns pats
         
         | SynPat.As(lhsPat: SynPat, rhsPat: SynPat, range: range) ->
-            acc
+            state
             |> analyzePattern lhsPat
             |> analyzePattern rhsPat
         
         | SynPat.Null(range: range) ->
-            acc
+            state
         
         | SynPat.OptionalVal(ident: Ident, range: range) ->
-            acc
+            state
         
         | SynPat.IsInst(targetType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType targetType
         
         | SynPat.QuoteExpr(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynPat.InstanceMember(thisId: Ident, memberId: Ident, toolId: Ident option, accessibility: SynAccess option, range: range) ->
-            acc
+            state
         
         | SynPat.FromParseError(pat: SynPat, range: range) ->
-            acc
+            state
             |> analyzePattern pat
     
     /// <summary>
@@ -275,7 +275,7 @@ module CompleteASTPatterns =
     /// <param name="expr">Expression to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>Updated accumulator with messages from this expression and all sub-expressions</returns>
-    and analyzeExpression<'TState> (expr: SynExpr) (acc: State<'TState>) : State<'TState> =
+    and analyzeExpression<'TState> (expr: SynExpr) (state: State<'TState>) : State<'TState> =
         let analyzeOptionalExpression = createOptionAnalyzer analyzeExpression
         let analyzeExpressions = createListAnalyzer analyzeExpression
         let analyzeTypes = createListAnalyzer analyzeType
@@ -287,50 +287,50 @@ module CompleteASTPatterns =
         
         // === BASIC CASES ===
         | SynExpr.Paren(expr: SynExpr, leftParenRange: range, rightParenRange: range option, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.Quote(operator: SynExpr, isRaw: bool, quotedExpr: SynExpr, isFromQueryExpression: bool, range: range) ->
-            acc
+            state
             |> analyzeExpression operator
             |> analyzeExpression quotedExpr
         
         | SynExpr.Const(constant: SynConst, range: range) ->
-            acc
+            state
         
         | SynExpr.Typed(expr: SynExpr, targetType: SynType, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
             |> analyzeType targetType
         
         | SynExpr.Tuple(isStruct: bool, exprs: SynExpr list, commaRanges: range list, range: range) ->
             let analyzeExprs = createListAnalyzer analyzeExpression
             
-            acc
+            state
             |> analyzeExprs exprs
         
         | SynExpr.AnonRecd(isStruct: bool, copyInfo: (SynExpr * BlockSeparator) option, recordFields: (SynLongIdent * range option * SynExpr) list, range: range, trivia: SynExprAnonRecdTrivia) ->            
-            acc
+            state
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
             |> analyzeExpressions (recordFields |> List.map trd)
         
         | SynExpr.ArrayOrList(isArray: bool, exprs: SynExpr list, range: range) ->
-            acc
+            state
             |> analyzeExpressions exprs
         
         | SynExpr.Record(baseInfo: (SynType * SynExpr * range * BlockSeparator option * range) option, copyInfo: (SynExpr * BlockSeparator) option, recordFields: SynExprRecordField list, range: range) ->
-            acc
+            state
             |> analyzeOptionalExpression (baseInfo |> Option.map (fun (_, expr, _, _, _) -> expr))
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
             |> analyzeExpressions (recordFields |> List.choose (function SynExprRecordField(_, _, expr, _) -> expr))
         
         | SynExpr.New(isProtected: bool, targetType: SynType, expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeType targetType
             |> analyzeExpression expr
         
         | SynExpr.ObjExpr(objType: SynType, argOptions: (SynExpr * Ident option) option, withKeyword: range option, bindings: SynBinding list, members: SynMemberDefns, extraImpls: SynInterfaceImpl list, newExprRange: range, range: range) ->            
-            acc
+            state
             |> analyzeType objType
             |> analyzeOptionalExpression (argOptions |> Option.map fst)
             |> analyzeBindings bindings
@@ -338,299 +338,299 @@ module CompleteASTPatterns =
         
         // === CONTROL FLOW ===
         | SynExpr.While(whileDebugPoint: DebugPointAtWhile, whileExpr: SynExpr, doExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression whileExpr
             |> analyzeExpression doExpr
         
         | SynExpr.For(forDebugPoint: DebugPointAtFor, toDebugPoint: DebugPointAtInOrTo, ident: Ident, equalsRange: range option, identBody: SynExpr, direction: bool, toBody: SynExpr, doBody: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression identBody
             |> analyzeExpression toBody
             |> analyzeExpression doBody
         
         | SynExpr.ForEach(forDebugPoint: DebugPointAtFor, inDebugPoint: DebugPointAtInOrTo, seqExprOnly: SeqExprOnly, isFromSource: bool, pat: SynPat, enumExpr: SynExpr, bodyExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzePattern pat
             |> analyzeExpression enumExpr
             |> analyzeExpression bodyExpr
         
         | SynExpr.ArrayOrListComputed(isArray: bool, expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.IndexRange(expr1: SynExpr option, opm: range, expr2: SynExpr option, range1: range, range2: range, range: range) ->
-            acc
+            state
             |> analyzeOptionalExpression expr1
             |> analyzeOptionalExpression expr2
         
         | SynExpr.IndexFromEnd(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.ComputationExpr(hasSeqBuilder: bool, expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.Lambda(fromMethod: bool, inLambdaSeq: bool, args: SynSimplePats, body: SynExpr, parsedData: (SynPat list * SynExpr) option, range: range, trivia: SynExprLambdaTrivia) ->
             let accWithParsedData = 
                 match parsedData with
                 | Some (patterns, expr) ->
-                    acc
+                    state
                     |> analyzePatterns patterns
                     |> analyzeExpression expr
-                | None -> acc
+                | None -> state
             
             accWithParsedData
             |> analyzeExpression body
         
         | SynExpr.MatchLambda(isExnMatch: bool, keywordRange: range, matchClauses: SynMatchClause list, matchDebugPoint: DebugPointAtBinding, range: range) ->
-            acc
+            state
             |> analyzePatterns (matchClauses |> List.map (function SynMatchClause(pat, _, _, _, _, _) -> pat))
             |> analyzeExpressions (matchClauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.Match(matchDebugPoint: DebugPointAtBinding, expr: SynExpr, clauses: SynMatchClause list, range: range, trivia: SynExprMatchTrivia) ->
-            acc
+            state
             |> analyzeExpression expr
             |> analyzePatterns (clauses |> List.map (function SynMatchClause(pat, _, _, _, _, _) -> pat))
             |> analyzeExpressions (clauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.Do(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.Assert(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         // === FUNCTION APPLICATION ===
         | SynExpr.App(flag: ExprAtomicFlag, isInfix: bool, funcExpr: SynExpr, argExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression funcExpr
             |> analyzeExpression argExpr
         
         | SynExpr.TypeApp(expr: SynExpr, lessRange: range, typeArgs: SynType list, commaRanges: range list, greaterRange: range option, typeArgsRange: range, range: range) ->            
-            acc
+            state
             |> analyzeExpression expr
             |> analyzeTypes typeArgs
         
         // === BINDINGS ===
         | SynExpr.LetOrUse(isRecursive: bool, isUse: bool, bindings: SynBinding list, body: SynExpr, range: range, trivia: SynExprLetOrUseTrivia) ->
-            acc
+            state
             |> analyzeBindings bindings
             |> analyzeExpression body
         
         // === ERROR HANDLING ===
         | SynExpr.TryWith(tryExpr: SynExpr, withCases: SynMatchClause list, range: range, tryDebugPoint: DebugPointAtTry, withDebugPoint: DebugPointAtWith, trivia: SynExprTryWithTrivia) ->
-            acc
+            state
             |> analyzeExpression tryExpr
             |> analyzeExpressions (withCases |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.TryFinally(tryExpr: SynExpr, finallyExpr: SynExpr, range: range, tryDebugPoint: DebugPointAtTry, finallyDebugPoint: DebugPointAtFinally, trivia: SynExprTryFinallyTrivia) ->
-            acc
+            state
             |> analyzeExpression tryExpr
             |> analyzeExpression finallyExpr
         
         | SynExpr.Lazy(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.Sequential(debugPoint: DebugPointAtSequential, isTrueSeq: bool, expr1: SynExpr, expr2: SynExpr, range: range, trivia: SynExprSequentialTrivia) ->
-            acc
+            state
             |> analyzeExpression expr1
             |> analyzeExpression expr2
         
         | SynExpr.IfThenElse(ifExpr: SynExpr, thenExpr: SynExpr, elseExpr: SynExpr option, spIfToThen: DebugPointAtBinding, isFromErrorRecovery: bool, range: range, trivia: SynExprIfThenElseTrivia) ->
-            acc
+            state
             |> analyzeExpression ifExpr
             |> analyzeExpression thenExpr
             |> analyzeOptionalExpression elseExpr
         
         // === IDENTIFIERS ===
         | SynExpr.Typar(typar: SynTypar, range: range) ->
-            acc
+            state
         
         | SynExpr.Ident(ident: Ident) ->
-            acc
+            state
         
         | SynExpr.LongIdent(isOptional: bool, longDotId: SynLongIdent, altNameRefCell: SynSimplePatAlternativeIdInfo ref option, range: range) ->
-            acc
+            state
         
         | SynExpr.LongIdentSet(longDotId: SynLongIdent, expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         // === MEMBER ACCESS ===
         | SynExpr.DotGet(expr: SynExpr, rangeOfDot: range, longDotId: SynLongIdent, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.DotLambda(expr: SynExpr, range: range, trivia: SynExprDotLambdaTrivia) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.DotSet(targetExpr: SynExpr, longDotId: SynLongIdent, rhsExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression targetExpr
             |> analyzeExpression rhsExpr
         
         | SynExpr.Set(targetExpr: SynExpr, rhsExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression targetExpr
             |> analyzeExpression rhsExpr
         
         | SynExpr.DotIndexedGet(objectExpr: SynExpr, indexArgs: SynExpr, dotRange: range, range: range) ->
-            acc
+            state
             |> analyzeExpression objectExpr
             |> analyzeExpression indexArgs
         
         | SynExpr.DotIndexedSet(objectExpr: SynExpr, indexArgs: SynExpr, valueExpr: SynExpr, leftOfSetRange: range, dotRange: range, range: range) ->
-            acc
+            state
             |> analyzeExpression objectExpr
             |> analyzeExpression indexArgs
             |> analyzeExpression valueExpr
         
         | SynExpr.NamedIndexedPropertySet(longDotId: SynLongIdent, expr1: SynExpr, expr2: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr1
             |> analyzeExpression expr2
         
         | SynExpr.DotNamedIndexedPropertySet(targetExpr: SynExpr, longDotId: SynLongIdent, argExpr: SynExpr, rhsExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression targetExpr
             |> analyzeExpression argExpr
             |> analyzeExpression rhsExpr
         
         // === TYPE OPERATIONS ===
         | SynExpr.TypeTest(expr: SynExpr, targetType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType targetType
             |> analyzeExpression expr
         
         | SynExpr.Upcast(expr: SynExpr, targetType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType targetType
             |> analyzeExpression expr
         
         | SynExpr.Downcast(expr: SynExpr, targetType: SynType, range: range) ->
-            acc
+            state
             |> analyzeType targetType
             |> analyzeExpression expr
         
         | SynExpr.InferredUpcast(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.InferredDowncast(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.Null(range: range) ->
-            acc
+            state
         
         | SynExpr.AddressOf(isByref: bool, expr: SynExpr, opRange: range, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.TraitCall(supportTys: SynType, traitSig: SynMemberSig, argExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeType supportTys
             |> analyzeExpression argExpr
         
         | SynExpr.JoinIn(lhsExpr: SynExpr, lhsRange: range, rhsExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression lhsExpr
             |> analyzeExpression rhsExpr
         
         | SynExpr.ImplicitZero(range: range) ->
-            acc
+            state
         
         // === COMPUTATION EXPRESSIONS ===
         | SynExpr.SequentialOrImplicitYield(debugPoint: DebugPointAtSequential, expr1: SynExpr, expr2: SynExpr, ifNotStmt: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr1
             |> analyzeExpression expr2
             |> analyzeExpression ifNotStmt
         
         | SynExpr.YieldOrReturn((flags1: bool, flags2: bool), expr: SynExpr, range: range, trivia: SynExprYieldOrReturnTrivia) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.YieldOrReturnFrom((flags1: bool, flags2: bool), expr: SynExpr, range: range, trivia: SynExprYieldOrReturnFromTrivia) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.LetOrUseBang(bindDebugPoint: DebugPointAtBinding, isUse: bool, isFromSource: bool, pat: SynPat, rhs: SynExpr, andBangs: SynExprAndBang list, body: SynExpr, range: range, trivia: SynExprLetOrUseBangTrivia) ->
-            acc
+            state
             |> analyzePattern pat
             |> analyzeExpression rhs
             |> analyzeExpressions (andBangs |> List.map (function SynExprAndBang(_, _, _, _, expr, _, _) -> expr))
             |> analyzeExpression body
         
         | SynExpr.MatchBang(matchDebugPoint: DebugPointAtBinding, expr: SynExpr, clauses: SynMatchClause list, range: range, trivia: SynExprMatchBangTrivia) ->
-            acc
+            state
             |> analyzeExpression expr
             |> analyzeExpressions (clauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.DoBang(expr: SynExpr, range: range, trivia: SynExprDoBangTrivia) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.WhileBang(whileDebugPoint: DebugPointAtWhile, whileExpr: SynExpr, doExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression whileExpr
             |> analyzeExpression doExpr
         
         // === LIBRARY/COMPILER INTERNALS ===
         | SynExpr.LibraryOnlyILAssembly(ilCode: obj, typeArgs: SynType list, args: SynExpr list, retTy: SynType list, range: range) ->
-            acc
+            state
             |> analyzeTypes typeArgs
             |> analyzeExpressions args
             |> analyzeTypes retTy
         
         | SynExpr.LibraryOnlyStaticOptimization(constraints: SynStaticOptimizationConstraint list, expr: SynExpr, optimizedExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
             |> analyzeExpression optimizedExpr
         
         | SynExpr.LibraryOnlyUnionCaseFieldGet(expr: SynExpr, longId: LongIdent, fieldNum: int, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.LibraryOnlyUnionCaseFieldSet(expr: SynExpr, longId: LongIdent, fieldNum: int, rhsExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
             |> analyzeExpression rhsExpr
         
         // === ERROR RECOVERY ===
         | SynExpr.ArbitraryAfterError(debugStr: string, range: range) ->
-            acc
+            state
         
         | SynExpr.FromParseError(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.DiscardAfterMissingQualificationAfterDot(expr: SynExpr, dotRange: range, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         | SynExpr.Fixed(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
         
         // === STRING INTERPOLATION ===
         | SynExpr.InterpolatedString(contents: SynInterpolatedStringPart list, synStringKind: SynStringKind, range: range) ->
-            acc
+            state
             |> analyzeExpressions (contents |> List.choose (function 
                 | SynInterpolatedStringPart.String(_, _) -> None
                 | SynInterpolatedStringPart.FillExpr(expr, _) -> Some expr))
         
         // === DEBUG SUPPORT ===
         | SynExpr.DebugPoint(debugPoint: DebugPointAtLeafExpr, isControlFlow: bool, innerExpr: SynExpr) ->
-            acc
+            state
             |> analyzeExpression innerExpr
         
         | SynExpr.Dynamic(funcExpr: SynExpr, qmark: range, argExpr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression funcExpr
             |> analyzeExpression argExpr
     
@@ -641,7 +641,7 @@ module CompleteASTPatterns =
     /// <param name="decl">The F# module declaration syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeModuleDecl<'TState> (decl: SynModuleDecl) (acc: State<'TState>) : State<'TState> =
+    and analyzeModuleDecl<'TState> (decl: SynModuleDecl) (state: State<'TState>) : State<'TState> =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDecl
         let analyzeBindings = createListAnalyzer analyzeBinding
         let analyzeExpressions = createListAnalyzer analyzeExpression
@@ -650,46 +650,46 @@ module CompleteASTPatterns =
         
         // === LET BINDINGS ===
         | SynModuleDecl.Let(isRecursive: bool, bindings: SynBinding list, range: range) ->
-            acc
+            state
             |> analyzeBindings bindings
         
         // === TYPE DEFINITIONS ===
         | SynModuleDecl.Types(typeDefns: SynTypeDefn list, range: range) ->
-            acc
+            state
         
         // === EXCEPTION DEFINITIONS ===
         | SynModuleDecl.Exception(exnDefn: SynExceptionDefn, range: range) ->
-            acc
+            state
         
         // === OPEN STATEMENTS ===
         | SynModuleDecl.Open(target: SynOpenDeclTarget, range: range) ->
-            acc
+            state
         
         // === MODULE DECLARATIONS ===
         | SynModuleDecl.ModuleAbbrev(ident: Ident, longId: LongIdent, range: range) ->
-            acc
+            state
         
         | SynModuleDecl.NestedModule(componentInfo: SynComponentInfo, isRecursive: bool, decls: SynModuleDecl list, isContinuing: bool, range: range, trivia: SynModuleDeclNestedModuleTrivia) ->
-            acc
+            state
             |> analyzeModuleDecls decls
         
         // === ATTRIBUTES ===
         | SynModuleDecl.Attributes(attributes: SynAttributes, range: range) ->
-            acc
+            state
             |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
         
         // === HASH DIRECTIVES ===
         | SynModuleDecl.HashDirective(hashDirective: ParsedHashDirective, range: range) ->
-            acc
+            state
         
         // === NAMESPACE FRAGMENT ===
         | SynModuleDecl.NamespaceFragment(moduleOrNamespace: SynModuleOrNamespace) ->
-            acc
+            state
             |> analyzeSynModuleOrNamespace moduleOrNamespace
         
         // === STANDALONE EXPRESSIONS ===
         | SynModuleDecl.Expr(expr: SynExpr, range: range) ->
-            acc
+            state
             |> analyzeExpression expr
     
     /// <summary>
@@ -699,7 +699,7 @@ module CompleteASTPatterns =
     /// <param name="moduleOrNs">The F# module or namespace syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeSynModuleOrNamespace<'TState> (moduleOrNs: SynModuleOrNamespace) (acc: State<'TState>) : State<'TState> =
+    and analyzeSynModuleOrNamespace<'TState> (moduleOrNs: SynModuleOrNamespace) (state: State<'TState>) : State<'TState> =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDecl
         
         match moduleOrNs with
@@ -709,7 +709,7 @@ module CompleteASTPatterns =
             | SynModuleOrNamespaceKind.AnonModule -> "anonymous module" 
             | SynModuleOrNamespaceKind.DeclaredNamespace -> "declared namespace"
             | SynModuleOrNamespaceKind.GlobalNamespace -> "global namespace"
-            acc
+            state
             |> analyzeModuleDecls decls
     
     /// <summary>
@@ -719,13 +719,13 @@ module CompleteASTPatterns =
     /// <param name="binding">The F# binding syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeBinding<'TState> (binding: SynBinding) (acc: State<'TState>) : State<'TState> =
+    and analyzeBinding<'TState> (binding: SynBinding) (state: State<'TState>) : State<'TState> =
         let analyzeExpressions = createListAnalyzer analyzeExpression
         let analyzeOptionalReturnInfo = createOptionAnalyzer analyzeBindingReturnInfo
             
         match binding with
         | SynBinding(accessibility: SynAccess option, kind: SynBindingKind, isInline: bool, isMutable: bool, attrs: SynAttributes, xmlDoc: PreXmlDoc, valData: SynValData, headPat: SynPat, returnInfo: SynBindingReturnInfo option, expr: SynExpr, range: range, debugPoint: DebugPointAtBinding, trivia: SynBindingTrivia) ->
-            acc
+            state
             |> analyzeExpressions (attrs |> List.collect _.Attributes |> List.map _.ArgExpr)
             |> analyzePattern headPat
             |> analyzeOptionalReturnInfo returnInfo
@@ -738,12 +738,12 @@ module CompleteASTPatterns =
     /// <param name="interfaceImpl">The F# interface implementation syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeSynInterfaceImpl<'TState> (interfaceImpl: SynInterfaceImpl) (acc: State<'TState>) : State<'TState> =
+    and analyzeSynInterfaceImpl<'TState> (interfaceImpl: SynInterfaceImpl) (state: State<'TState>) : State<'TState> =
         let analyzeBindings = createListAnalyzer analyzeBinding
         
         match interfaceImpl with
         | SynInterfaceImpl(interfaceTy: SynType, withKeyword: range option, bindings: SynBinding list, members: SynMemberDefns, range: range) ->
-            acc
+            state
             |> analyzeType interfaceTy
             |> analyzeBindings bindings
     
@@ -754,12 +754,12 @@ module CompleteASTPatterns =
     /// <param name="returnInfo">The F# binding return info syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeBindingReturnInfo<'TState> (returnInfo: SynBindingReturnInfo) (acc: State<'TState>) : State<'TState> =
+    and analyzeBindingReturnInfo<'TState> (returnInfo: SynBindingReturnInfo) (state: State<'TState>) : State<'TState> =
         let analyzeExpressions = createListAnalyzer analyzeExpression
             
         match returnInfo with
         | SynBindingReturnInfo(typeName: SynType, range: range, attributes: SynAttributes, trivia: SynBindingReturnInfoTrivia) ->
-            acc
+            state
             |> analyzeType typeName
             |> analyzeExpressions (attributes |> List.collect _.Attributes |> List.map _.ArgExpr)
     
