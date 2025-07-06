@@ -431,6 +431,10 @@ module CompleteASTPatterns =
         
         // === FUNCTION APPLICATION ===
         | SynExpr.App(flag: ExprAtomicFlag, isInfix: bool, funcExpr: SynExpr, argExpr: SynExpr, range: range) ->
+            // IDENTIFIER EXTRACTION: Function call detection from funcExpr, especially for external package usage
+            // CUSTOM RULE EXAMPLES: Assert.True detection, external API usage validation, deprecated method checks
+            // ACCESS PATTERN: match funcExpr with SynExpr.LongIdent(_, SynLongIdent([module; func], _, _), _, _) -> module.idText, func.idText
+            // PACKAGE REFERENCE DETECTION: Check for external library calls like Assert.True, Console.WriteLine etc.
             state
             |> analyzeExpression funcExpr
             |> analyzeExpression argExpr
@@ -484,8 +488,10 @@ module CompleteASTPatterns =
         
         | SynExpr.LongIdent(isOptional: bool, longDotId: SynLongIdent, altNameRefCell: SynSimplePatAlternativeIdInfo ref option, range: range) ->
             // IDENTIFIER EXTRACTION: Qualified identifier from longDotId.LongIdent as Ident list, use idText for qualified names
-            // CUSTOM RULE EXAMPLES: Module reference checks, namespace usage validation, qualified naming rules
+            // CUSTOM RULE EXAMPLES: Module reference checks, namespace usage validation, qualified naming rules, external package detection
             // ACCESS PATTERN: let qualifiedName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
+            // PACKAGE REFERENCE DETECTION: Check for external library usage like Assert, Console, Math modules
+            // PATTERN: match longDotId.LongIdent with [module; member] -> (module.idText, member.idText) for two-part qualified names
             state
         
         | SynExpr.LongIdentSet(longDotId: SynLongIdent, expr: SynExpr, range: range) ->
