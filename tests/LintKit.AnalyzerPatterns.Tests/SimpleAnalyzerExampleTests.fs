@@ -119,3 +119,103 @@ let normalMessage = "This is fine"
             Assert.True(msgs.Length >= 2, "Should detect at least 2 TODO messages")
             Assert.True(msgs |> List.forall (fun m -> m.Code = "SIMPLE001"))
         }
+
+    /// <summary>
+    /// AI Pattern: Testing SimpleAnalyzer with external package references (like xUnit)
+    /// Key: Use package records in mkOptionsFromProject when source contains external dependencies
+    /// </summary>
+    [<Fact>]
+    let ``Should detect TODO in code with xUnit package reference`` () =
+        async {
+            // AI Pattern: Critical - include external packages for test code that uses them
+            let! projectOptions =
+                mkOptionsFromProject
+                    "net9.0"
+                    [
+                        { Name = "xunit"; Version = "2.9.2" }
+                    ]
+                |> Async.AwaitTask
+            
+            let source = """
+module TestModule
+open Xunit
+
+[<Fact>]
+let ``Example test`` () =
+    let message = "TODO: Write proper test"
+    Assert.True(true)
+"""
+            
+            let ctx = getContext projectOptions source
+            let! msgs = simpleAnalyzer ctx
+            
+            // Should detect TODO even in test code with external packages
+            Assert.NotEmpty(msgs)
+            let todoMessage = msgs |> List.head
+            Assert.Equal("SIMPLE001", todoMessage.Code)
+            Assert.Contains("TODO", todoMessage.Message)
+        }
+
+    /// <summary>
+    /// AI Pattern: Testing SimpleAnalyzer with xUnit package and function usage
+    /// Shows how package references work with actual library function calls
+    /// </summary>
+    [<Fact>]
+    let ``Should detect TODO in xUnit test with Assert function`` () =
+        async {
+            let! projectOptions =
+                mkOptionsFromProject
+                    "net9.0"
+                    [
+                        { Name = "xunit"; Version = "2.9.2" }
+                    ]
+                |> Async.AwaitTask
+            
+            let source = """
+module TestModule
+open Xunit
+
+let testFunction () =
+    let message = "TODO: Load actual data"
+    Assert.True(1 = 1)
+"""
+            
+            let ctx = getContext projectOptions source
+            let! msgs = simpleAnalyzer ctx
+            
+            // Should detect TODO even in xUnit test with Assert function
+            Assert.NotEmpty(msgs)
+            let todoMessage = msgs |> List.head
+            Assert.Equal("SIMPLE001", todoMessage.Code)
+        }
+
+    /// <summary>
+    /// AI Pattern: Testing SimpleAnalyzer with no external packages (baseline test)
+    /// Demonstrates that package list can be empty when no external dependencies are used
+    /// </summary>
+    [<Fact>]
+    let ``Should work with no external packages`` () =
+        async {
+            let! projectOptions =
+                mkOptionsFromProject
+                    "net9.0"
+                    []  // No external packages needed
+                |> Async.AwaitTask
+            
+            let source = """
+module TestModule
+
+let simpleFunction () =
+    let message = "TODO: Implement this"
+    message
+"""
+            
+            let ctx = getContext projectOptions source
+            let! msgs = simpleAnalyzer ctx
+            
+            // Should detect TODO even without any external packages
+            Assert.NotEmpty(msgs)
+            let todoMessage = msgs |> List.head
+            Assert.Equal("SIMPLE001", todoMessage.Code)
+            Assert.Contains("TODO", todoMessage.Message)
+        }
