@@ -9,12 +9,7 @@
 
   <ItemGroup>
     <Compile Include="SimpleAnalyzerExample.fs" />
-    <Compile Include="PackageReferenceExample.fs" />
     <Compile Include="CompleteASTPatterns.fs" />
-    <Compile Include="AttributeDetection.fs" />
-    <Compile Include="TypeAnnotationChecker.fs" />
-    <Compile Include="SeverityGuide.fs" />
-    <Compile Include="NamingConventions.fs" />
   </ItemGroup>
 
   <ItemGroup>

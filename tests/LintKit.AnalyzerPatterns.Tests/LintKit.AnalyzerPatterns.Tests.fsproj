@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <Compile Include="SimpleAnalyzerExampleTests.fs" />
-    <Compile Include="PackageReferenceExampleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

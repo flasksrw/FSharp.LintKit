@@ -61,11 +61,13 @@ Reference these existing implementations for patterns:
   - Contains error handling and async structure examples
   - **Use this as your primary template for analyzer structure**
 
-- **Complete SynExpr Patterns (REQUIRED for thorough analysis)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynExprPatterns.fs
-  - Demonstrates complete SynExpr pattern matching (all 73 patterns)
-  - Uses accumulator pattern for efficient message collection
-  - Shows proper recursive traversal of all AST nodes with full type annotations
-  - **Use this when you need to ensure no AST nodes are missed**
+- **Complete AST Patterns (REQUIRED for thorough analysis)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/CompleteASTPatterns.fs
+  - THE DEFINITIVE consolidated F# AST analysis reference with all integrated knowledge
+  - Complete AST pattern matching (SynExpr, SynModuleDecl, SynPat, SynType - all patterns)
+  - Integrated identifier extraction, package reference detection, attribute analysis
+  - Integrated type annotation guidance and severity level guidelines (Error/Warning/Info/Hint)
+  - Uses State<'TState> pattern for extensible analysis with user state
+  - **Use this as your primary AST analysis reference - contains all patterns in one place**
 
 - **Working Tests (REQUIRED)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/tests/LintKit.AnalyzerPatterns.Tests/SimpleAnalyzerExampleTests.fs
   - Correct FSharp.Analyzers.SDK.Testing usage
@@ -73,19 +75,23 @@ Reference these existing implementations for patterns:
   - Shows proper async test structure and assertions
   - **Use this as your primary template for test structure**
 
-- **Package Reference Tests (REQUIRED for external dependencies)**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/tests/LintKit.AnalyzerPatterns.Tests/PackageReferenceExampleTests.fs
-  - Shows how to test code with external package references
-  - Use package records: `{ Name = "xunit"; Version = "2.9.2" }`
-  - **Use this when test code contains [<Fact>], Assert.Equal, or custom libraries**
+- **Package Reference Pattern (for external dependencies)**: ConsultCompleteASTPatterns.fs for package detection patterns
+  - Package reference detection is integrated into CompleteASTPatterns.fs
+  - For testing with external packages, use package records: `{ Name = "xunit"; Version = "2.9.2" }`
+  - **Use when test code contains [<Fact>], Assert.Equal, or custom libraries**
 
-- **AST Patterns (REFERENCE)**: Directory containing pattern matching examples
-  - **SynExprPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynExprPatterns.fs - Complete SynExpr pattern matching (expressions, function calls, if-then-else, match, etc.)
-  - **SynModuleDeclPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynModuleDeclPatterns.fs - Module declarations (let bindings, type definitions, open statements, nested modules)
-  - **SynPatPatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynPatPatterns.fs - Pattern matching constructs (match patterns, let binding patterns)
-  - **SynTypePatterns.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/SynTypePatterns.fs - Type expressions and annotations
-  - **AttributeDetection.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/AttributeDetection.fs - Custom attribute detection and analysis
-  - **NamingConventions.fs**: https://raw.githubusercontent.com/flasksrw/FSharp.LintKit/main/src/LintKit.AnalyzerPatterns/NamingConventions.fs - Identifier naming convention enforcement
-  - **Consult specific files when you encounter AST pattern matching errors**
+- **🎯 SINGLE COMPREHENSIVE REFERENCE**: CompleteASTPatterns.fs consolidates all AST analysis knowledge
+  - **All SynExpr patterns** (73 expression types): function calls, if-then-else, match, let bindings, etc.
+  - **All SynModuleDecl patterns** (10 module declarations): let bindings, type definitions, open statements, nested modules
+  - **All SynPat patterns** (20 pattern constructs): match patterns, let binding patterns, tuple patterns, etc.
+  - **All SynType patterns** (23 type expressions): function types, tuple types, generic types, etc.
+  - **Integrated specialized knowledge**:
+    - Identifier extraction (function names, variable names, module names)
+    - Package reference detection (external library usage like Assert.True, Console.WriteLine)
+    - Attribute analysis (custom attributes, count validation, specific attribute patterns)
+    - Type annotation guidance (presence/absence checking, redundancy detection)
+    - Severity level guidelines (Error/Warning/Info/Hint with concrete examples)
+  - **⚠️ Use CompleteASTPatterns.fs as your single source of truth for all AST analysis**
 
 - **Template Structure (REFERENCE)**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer
   - Project file templates and structure
@@ -95,12 +101,12 @@ Reference these existing implementations for patterns:
 ### Key Pattern Categories
 - **Working Analyzer**: SimpleAnalyzerExample.fs shows complete implementation with TODO detection
 - **Working Tests**: SimpleAnalyzerExampleTests.fs shows correct FSharp.Analyzers.SDK.Testing usage
-- **SynExpr**: All F# expression patterns with complete type matching
-- **SynModuleDecl**: Module-level declarations (let, type, open, nested modules)
-- **SynPat**: Pattern matching constructs in match expressions and let bindings
-- **SynType**: Type expressions and annotations
-- **Attributes**: Custom attribute detection and analysis
-- **Naming**: Identifier naming convention enforcement
+- **🎯 Complete AST Reference**: CompleteASTPatterns.fs - THE DEFINITIVE consolidated reference containing:
+  - All SynExpr patterns (73 expression types) with complete type matching
+  - All SynModuleDecl patterns (10 module-level declarations: let, type, open, nested modules)
+  - All SynPat patterns (20 pattern matching constructs in match expressions and let bindings)
+  - All SynType patterns (23 type expressions and annotations)
+  - All specialized analysis techniques (attributes, naming, package detection, severity guidelines) integrated into one comprehensive file
 
 ## TEMPLATE PROJECT STRUCTURE
 
