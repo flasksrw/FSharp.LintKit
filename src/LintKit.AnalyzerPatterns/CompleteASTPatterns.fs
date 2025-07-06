@@ -43,6 +43,26 @@ module CompleteASTPatterns =
 
     /// <summary>
     /// Adds a message to the current state
+    /// 
+    /// SEVERITY LEVEL GUIDELINES (based on SeverityGuide.fs patterns):
+    /// 
+    /// ERROR: Critical issues that MUST be fixed (breaks compilation, runtime failures, security vulnerabilities)
+    ///   - Examples: failwith usage, division by zero, unsafe memory operations, dangerous API calls
+    ///   - Pattern: { Severity = Severity.Error; Code = "ERR001"; Message = "..." }
+    /// 
+    /// WARNING: Important issues that SHOULD be addressed (likely bugs, deprecated usage, performance problems)
+    ///   - Examples: List.append in loops, Console.WriteLine in production, deeply nested if-then-else
+    ///   - Pattern: { Severity = Severity.Warning; Code = "WRN001"; Message = "..." }
+    /// 
+    /// INFO: Suggestions for improvement (style, maintainability, better practices)
+    ///   - Examples: Functional programming style, type annotation suggestions, record vs tuple
+    ///   - Pattern: { Severity = Severity.Info; Code = "INF001"; Message = "..." }
+    /// 
+    /// HINT: Subtle suggestions for enhancement (advanced optimizations, expert tips)
+    ///   - Examples: Array vs List performance, function composition opportunities, advanced patterns
+    ///   - Pattern: { Severity = Severity.Hint; Code = "HNT001"; Message = "..." }
+    /// 
+    /// ESCALATION PATTERN: Use progressively higher severity for increasing complexity/risk
     /// </summary>
     let addMessage<'TState> (message: Message) (state: State<'TState>) : State<'TState> =
         { state with Messages = message :: state.Messages }
@@ -67,6 +87,12 @@ module CompleteASTPatterns =
         
         // === LONG IDENTIFIER TYPES ===
         | SynType.LongIdent(longDotId: SynLongIdent) ->
+            // SEVERITY USAGE: Error for dangerous types, Warning for deprecated types,
+            // Info for style suggestions, Hint for advanced type optimizations
+            // Example: if typeName = "System.IntPtr" then Severity.Warning (unsafe)
+            //          if typeName ends with "Unsafe" then Severity.Error (dangerous)
+            //          if typeName = "Array" then Severity.Info (consider List)
+            //          if typeName = "List" in loops then Severity.Hint (consider Seq)
             state
         
         // === TYPE APPLICATIONS ===
@@ -318,6 +344,11 @@ module CompleteASTPatterns =
             |> analyzeExpression quotedExpr
         
         | SynExpr.Const(constant: SynConst, range: range) ->
+            // SEVERITY USAGE: Error for dangerous constants (division by zero: SynConst.Int32(0) in division context)
+            //                 Warning for large constants (likely typos: SynConst.Int32 > 1000000)
+            //                 Info for magic numbers (consider named constants: SynConst.Int32 values)
+            //                 Hint for string literal optimizations (consider string interpolation, verbatim strings)
+            // CONSTANT ANALYSIS: Check constant.Value for specific patterns - zero values, large numbers, special strings
             state
         
         | SynExpr.Typed(expr: SynExpr, targetType: SynType, range: range) ->
@@ -428,6 +459,11 @@ module CompleteASTPatterns =
             |> analyzeExpressions (matchClauses |> List.map (function SynMatchClause(_, _, expr, _, _, _) -> expr))
         
         | SynExpr.Match(matchDebugPoint: DebugPointAtBinding, expr: SynExpr, clauses: SynMatchClause list, range: range, trivia: SynExprMatchTrivia) ->
+            // SEVERITY USAGE: Error for incomplete pattern matching (missing case coverage)
+            //                 Warning for too many nested matches (readability issues)
+            //                 Info for matches that could be simplified to if-then-else
+            //                 Hint for pattern matching optimization opportunities (active patterns, guards)
+            // MATCH ANALYSIS: Check clauses.Length for complexity, analyze patterns for completeness
             state
             |> analyzeExpression expr
             |> analyzePatterns (clauses |> List.map (function SynMatchClause(pat, _, _, _, _, _) -> pat))
@@ -447,6 +483,10 @@ module CompleteASTPatterns =
             // CUSTOM RULE EXAMPLES: Assert.True detection, external API usage validation, deprecated method checks
             // ACCESS PATTERN: match funcExpr with SynExpr.LongIdent(_, SynLongIdent([module; func], _, _), _, _) -> module.idText, func.idText
             // PACKAGE REFERENCE DETECTION: Check for external library calls like Assert.True, Console.WriteLine etc.
+            // SEVERITY USAGE: Error for dangerous function calls (failwith, division by zero, unsafe operations)
+            //                 Warning for performance issues (List.append in loops, Console.WriteLine in production)
+            //                 Info for style improvements (functional programming suggestions, better collections)
+            //                 Hint for advanced optimizations (Array vs List performance, function composition)
             state
             |> analyzeExpression funcExpr
             |> analyzeExpression argExpr
@@ -500,6 +540,10 @@ module CompleteASTPatterns =
             // IDENTIFIER EXTRACTION: Identifier name from ident.idText, position from ident.idRange
             // CUSTOM RULE EXAMPLES: Variable/function name rule checks, forbidden name validation
             // ACCESS PATTERN: let name = ident.idText; let range = ident.idRange
+            // SEVERITY USAGE: Error for dangerous functions (failwith, unsafe operations)
+            //                 Warning for deprecated or performance issues
+            //                 Info for naming conventions or style suggestions
+            //                 Hint for optimization opportunities
             state
         
         | SynExpr.LongIdent(isOptional: bool, longDotId: SynLongIdent, altNameRefCell: SynSimplePatAlternativeIdInfo ref option, range: range) ->
