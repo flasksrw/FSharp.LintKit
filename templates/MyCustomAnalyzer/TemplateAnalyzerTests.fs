@@ -34,7 +34,7 @@ module TemplateAnalyzerTests =
             // CRITICAL: Use this exact mkOptionsFromProject pattern
             let! projectOptions =
                 mkOptionsFromProject
-                    "net8.0"  // Adjust target framework as needed
+                    "net9.0"  // Adjust target framework as needed
                     []        // Add packages if test code uses external libraries
                               // Example: [{ Name = "xunit"; Version = "2.9.2" }] for [<Fact>] attributes
                               // Example: [{ Name = "MyLibrary"; Version = "1.0.0" }] for custom libraries

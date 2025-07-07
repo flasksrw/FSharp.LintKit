@@ -13,7 +13,7 @@ FSharp.LintKit is a framework for applying custom lint rules to F# source code. 
 ## 2. Prerequisites
 
 ### System Requirements
-- .NET 8 or later
+- .NET 9 or later
 - FSharp.LintKit project (this repository)
 - AI agent (Claude, ChatGPT, etc.)
 

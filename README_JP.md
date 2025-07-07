@@ -64,13 +64,13 @@ cd MyProjectRules
 dotnet build
 
 # リント解析を実行
-dotnet fsharplintkit --analyzers ./bin/Debug/net8.0/MyProjectRules.dll --target ./src
+dotnet fsharplintkit --analyzers ./bin/Debug/net9.0/MyProjectRules.dll --target ./src
 ```
 
 ## インストール
 
 ### 前提条件
-- .NET 8.0以上
+- .NET 9.0以上
 - AIエージェントへのアクセス（Claude、ChatGPT等）
 
 ### CLIツールのインストール

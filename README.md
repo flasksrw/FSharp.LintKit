@@ -64,13 +64,13 @@ Message: Use proper logging instead of Console.WriteLine
 dotnet build
 
 # Run lint analysis
-dotnet fsharplintkit --analyzers ./bin/Debug/net8.0/MyProjectRules.dll --target ./src
+dotnet fsharplintkit --analyzers ./bin/Debug/net9.0/MyProjectRules.dll --target ./src
 ```
 
 ## Installation
 
 ### Prerequisites
-- .NET 8.0 or later
+- .NET 9.0 or later
 - AI agent access (Claude, ChatGPT, etc.)
 
 ### Install CLI Tool

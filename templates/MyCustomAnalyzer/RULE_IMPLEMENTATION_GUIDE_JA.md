@@ -13,7 +13,7 @@ FSharp.LintKitは、F#ソースコードに対してカスタムリントルー�
 ## 2. 前提条件
 
 ### システム要件
-- .NET 8以上
+- .NET 9以上
 - FSharp.LintKit プロジェクト（このリポジトリ）
 - AIエージェント（Claude、ChatGPT等）
 

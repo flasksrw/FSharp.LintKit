@@ -41,7 +41,7 @@ dotnet test
 
 ### 4. Use with LintKit
 ```bash
-dotnet fsharplintkit --analyzers ./bin/Debug/net8.0/MyCustomAnalyzer.dll --target ./src
+dotnet fsharplintkit --analyzers ./bin/Debug/net9.0/MyCustomAnalyzer.dll --target ./src
 ```
 
 ## Documentation Files

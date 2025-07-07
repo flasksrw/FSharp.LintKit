@@ -63,7 +63,7 @@ This tool aims to serve as a guardrail for AI code generation in the future.
 ---
 
 ## Non-Functional Requirements
-- Works on .NET 8 or later
+- Works on .NET 9 or later
 - Cross-platform (Windows/macOS/Linux)
 - Can execute without project dependencies once installed
 
@@ -207,7 +207,7 @@ dotnet new fsharplintkit-analyzer -n MyProjectRules
 dotnet build
 
 # 7. Run lint analysis with custom rules
-dotnet fsharplintkit --analyzers ./bin/Debug/net8.0/MyProjectRules.dll --target ./src
+dotnet fsharplintkit --analyzers ./bin/Debug/net9.0/MyProjectRules.dll --target ./src
 ```
 
 ### Benefits of This Distribution Model
