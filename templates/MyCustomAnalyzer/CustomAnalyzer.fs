@@ -48,9 +48,15 @@ module CustomAnalyzer =
     /// - Call depth: `int` for recursion/nesting level detection
     /// - Parent context: `ASTNode option` for upward traversal information
     /// 
+    /// **AI Agent Instructions**:
+    /// - ALWAYS use the exact type name 'UserState' (do not change it)
+    /// - ONLY modify the right side of the type definition
+    /// - For simple rules: keep `type UserState = unit`
+    /// - For complex rules: replace with record type as shown in the example
+    /// 
     /// **Example UserState for Complex Analysis**:
     /// ```fsharp
-    /// type MyAnalysisState = {
+    /// type UserState = {
     ///     CallStack: string list          // Current function call chain
     ///     ScopeStack: Scope list          // Nested scope contexts  
     ///     SymbolTable: Map<string, Info>  // Available identifiers
@@ -58,15 +64,17 @@ module CustomAnalyzer =
     /// }
     /// ```
     /// </summary>
-    type State<'TState> = {
+    type UserState = unit
+    
+    type State = {
         Messages: Message list
-        UserState: 'TState
+        UserState: UserState
     }
 
     /// <summary>
     /// Creates initial state with empty messages and provided user state
     /// </summary>
-    let createState<'TState> (initialUserState: 'TState) : State<'TState> =
+    let createState (initialUserState: UserState) : State =
         { Messages = []; UserState = initialUserState }
 
     /// <summary>
@@ -92,13 +100,13 @@ module CustomAnalyzer =
     /// 
     /// ESCALATION PATTERN: Use progressively higher severity for increasing complexity/risk
     /// </summary>
-    let addMessage<'TState> (message: Message) (state: State<'TState>) : State<'TState> =
+    let addMessage (message: Message) (state: State) : State =
         { state with Messages = message :: state.Messages }
 
     let flip f x y = f y x
     let trd (_, _, a) = a
-    let createListAnalyzer<'a, 'TState> (analyzer: 'a -> State<'TState> -> State<'TState>) = flip (List.fold (flip analyzer))
-    let createOptionAnalyzer<'a, 'TState> (analyzer: 'a -> State<'TState> -> State<'TState>) = Option.map analyzer >> Option.defaultValue id
+    let createListAnalyzer (analyzer: 'a -> State -> State) = flip (List.fold (flip analyzer))
+    let createOptionAnalyzer (analyzer: 'a -> State -> State) = Option.map analyzer >> Option.defaultValue id
 
     /// <summary>
     /// Analyzes a SynType with complete pattern matching using accumulator pattern
@@ -107,7 +115,7 @@ module CustomAnalyzer =
     /// <param name="synType">The F# type syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    let rec analyzeType<'TState> (synType: SynType) (state: State<'TState>) : State<'TState> =
+    let rec analyzeType (synType: SynType) (state: State) : State =
         let analyzeTypes = createListAnalyzer analyzeType
         let analyzeExpressions = createListAnalyzer analyzeExpression
         
@@ -229,9 +237,9 @@ module CustomAnalyzer =
     /// <param name="pat">The F# pattern syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzePattern<'TState> (pat: SynPat) (state: State<'TState>) : State<'TState> =
+    and analyzePattern (pat: SynPat) (state: State) : State =
         let analyzePatterns = createListAnalyzer analyzePattern
-        let analyzeArgPats (argPats: SynArgPats) (state: State<'TState>) : State<'TState> = 
+        let analyzeArgPats (argPats: SynArgPats) (state: State) : State = 
             match argPats with
             | SynArgPats.Pats(pats: SynPat list) ->
                 state
@@ -351,7 +359,7 @@ module CustomAnalyzer =
     /// <param name="expr">Expression to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>Updated accumulator with messages from this expression and all sub-expressions</returns>
-    and analyzeExpression<'TState> (expr: SynExpr) (state: State<'TState>) : State<'TState> =
+    and analyzeExpression (expr: SynExpr) (state: State) : State =
         let analyzeOptionalExpression = createOptionAnalyzer analyzeExpression
         let analyzeExpressions = createListAnalyzer analyzeExpression
         let analyzeTypes = createListAnalyzer analyzeType
@@ -783,7 +791,7 @@ module CustomAnalyzer =
     /// <param name="decl">The F# module declaration syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeModuleDecl<'TState> (decl: SynModuleDecl) (state: State<'TState>) : State<'TState> =
+    and analyzeModuleDecl (decl: SynModuleDecl) (state: State) : State =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDecl
         let analyzeBindings = createListAnalyzer analyzeBinding
         let analyzeExpressions = createListAnalyzer analyzeExpression
@@ -866,7 +874,7 @@ module CustomAnalyzer =
     /// <param name="moduleOrNs">The F# module or namespace syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeSynModuleOrNamespace<'TState> (moduleOrNs: SynModuleOrNamespace) (state: State<'TState>) : State<'TState> =
+    and analyzeSynModuleOrNamespace (moduleOrNs: SynModuleOrNamespace) (state: State) : State =
         let analyzeModuleDecls = createListAnalyzer analyzeModuleDecl
         
         match moduleOrNs with
@@ -892,7 +900,7 @@ module CustomAnalyzer =
     /// <param name="binding">The F# binding syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeBinding<'TState> (binding: SynBinding) (state: State<'TState>) : State<'TState> =
+    and analyzeBinding (binding: SynBinding) (state: State) : State =
         let analyzeExpressions = createListAnalyzer analyzeExpression
         let analyzeOptionalReturnInfo = createOptionAnalyzer analyzeBindingReturnInfo
             
@@ -919,7 +927,7 @@ module CustomAnalyzer =
     /// <param name="interfaceImpl">The F# interface implementation syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeSynInterfaceImpl<'TState> (interfaceImpl: SynInterfaceImpl) (state: State<'TState>) : State<'TState> =
+    and analyzeSynInterfaceImpl (interfaceImpl: SynInterfaceImpl) (state: State) : State =
         let analyzeBindings = createListAnalyzer analyzeBinding
         
         match interfaceImpl with
@@ -935,7 +943,7 @@ module CustomAnalyzer =
     /// <param name="returnInfo">The F# binding return info syntax tree node to analyze</param>
     /// <param name="acc">Accumulator for collecting messages</param>
     /// <returns>List of analysis messages for any issues found</returns>
-    and analyzeBindingReturnInfo<'TState> (returnInfo: SynBindingReturnInfo) (state: State<'TState>) : State<'TState> =
+    and analyzeBindingReturnInfo (returnInfo: SynBindingReturnInfo) (state: State) : State =
         let analyzeExpressions = createListAnalyzer analyzeExpression
             
         match returnInfo with
