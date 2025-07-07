@@ -148,8 +148,7 @@ Fix Suggestion: [Recommended fixes]
 
 ### Core Components
 - **LintKit.CLI**: Command-line interface and analyzer engine
-- **LintKit.AnalyzerPatterns**: AI learning reference implementations  
-- **Templates**: NuGet project templates for custom analyzers
+- **Templates**: NuGet project templates for custom analyzers with complete AST patterns
 
 ### Analyzer Framework
 - Built on **FSharp.Analyzers.SDK**
@@ -170,9 +169,9 @@ Fix Suggestion: [Recommended fixes]
 - **Japanese**: `templates/RULE_IMPLEMENTATION_GUIDE_JA.md`
 
 ### For AI Agents  
-- **Implementation Instructions**: `templates/AI_RULE_IMPLEMENTATION.md`
-- **Pattern Reference**: `src/LintKit.AnalyzerPatterns/`
-- **Working Examples**: `SimpleAnalyzerExample.fs`
+- **Implementation Instructions**: `templates/MyCustomAnalyzer/AI_RULE_IMPLEMENTATION.md`
+- **Complete AST Patterns**: `templates/MyCustomAnalyzer/TemplateAnalyzer.fs`
+- **Test Patterns**: `templates/MyCustomAnalyzer/TemplateAnalyzerTests.fs`
 
 ### Technical Reference
 - **Architecture Details**: F# AST analysis patterns
@@ -192,11 +191,11 @@ dotnet test
 ```
 FSharp.LintKit/
 ├── src/
-│   ├── LintKit.CLI/              # Command-line interface
-│   └── LintKit.AnalyzerPatterns/ # AI reference patterns
+│   └── LintKit.CLI/              # Command-line interface
 ├── templates/
-│   └── MyCustomAnalyzer/         # NuGet project template
-├── tests/                        # Test suites
+│   └── MyCustomAnalyzer/         # NuGet project template with complete AST patterns
+├── tests/
+│   └── LintKit.Tests/            # Unit tests for CLI components
 └── README.md                     # This file
 ```
 

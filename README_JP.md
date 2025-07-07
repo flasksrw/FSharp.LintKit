@@ -148,8 +148,7 @@ dotnet fsharplintkit --analyzers rules.dll --target ./src --verbose
 
 ### コアコンポーネント
 - **LintKit.CLI**: コマンドラインインターフェースとアナライザーエンジン
-- **LintKit.AnalyzerPatterns**: AI学習用参考実装
-- **Templates**: カスタムアナライザー用NuGetプロジェクトテンプレート
+- **Templates**: 完全なASTパターンを含むカスタムアナライザー用NuGetプロジェクトテンプレート
 
 ### アナライザーフレームワーク
 - **FSharp.Analyzers.SDK**をベースに構築
@@ -170,9 +169,9 @@ dotnet fsharplintkit --analyzers rules.dll --target ./src --verbose
 - **英語**: `templates/RULE_IMPLEMENTATION_GUIDE_EN.md`
 
 ### AIエージェント向け
-- **実装指示**: `templates/AI_RULE_IMPLEMENTATION.md`
-- **パターン参照**: `src/LintKit.AnalyzerPatterns/`
-- **動作例**: `SimpleAnalyzerExample.fs`
+- **実装指示**: `templates/MyCustomAnalyzer/AI_RULE_IMPLEMENTATION.md`
+- **完全なASTパターン**: `templates/MyCustomAnalyzer/TemplateAnalyzer.fs`
+- **テストパターン**: `templates/MyCustomAnalyzer/TemplateAnalyzerTests.fs`
 
 ### 技術リファレンス
 - **アーキテクチャ詳細**: F# AST解析パターン
@@ -192,11 +191,11 @@ dotnet test
 ```
 FSharp.LintKit/
 ├── src/
-│   ├── LintKit.CLI/              # コマンドラインインターフェース
-│   └── LintKit.AnalyzerPatterns/ # AI参照パターン
+│   └── LintKit.CLI/              # コマンドラインインターフェース
 ├── templates/
-│   └── MyCustomAnalyzer/         # NuGetプロジェクトテンプレート
-├── tests/                        # テストスイート
+│   └── MyCustomAnalyzer/         # 完全なASTパターンを含むNuGetプロジェクトテンプレート
+├── tests/
+│   └── LintKit.Tests/            # CLIコンポーネントのユニットテスト
 └── README.md                     # このファイル
 ```
 
