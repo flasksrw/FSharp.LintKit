@@ -259,9 +259,9 @@ module TemplateAnalyzer =
             state
         
         | SynPat.Named(ident: SynIdent, isThisVal: bool, accessibility: SynAccess option, range: range) ->
-            // IDENTIFIER EXTRACTION: Variable/function name from ident.idText, position from ident.idRange
+            // IDENTIFIER EXTRACTION: Variable/function name from SynIdent pattern matching
             // CUSTOM RULE EXAMPLES: Naming convention checks, forbidden name validation, camelCase/PascalCase verification
-            // ACCESS PATTERN: let name = ident.idText; let range = ident.idRange
+            // ACCESS PATTERN: match ident with SynIdent(ident, _) -> ident.idText, ident.idRange
             state
         
         | SynPat.Typed(pat: SynPat, targetType: SynType, range: range) ->
