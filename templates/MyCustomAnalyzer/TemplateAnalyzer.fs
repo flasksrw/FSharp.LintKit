@@ -26,7 +26,7 @@ open FSharp.Compiler.Xml
 /// - Type annotation guidance, severity level guidelines (Error/Warning/Info/Hint)
 /// - UserState pattern for extensible stateful analysis
 /// </summary>
-module CustomAnalyzer =
+module TemplateAnalyzer =
 
     /// <summary>
     /// State type for stateful AST analysis with generic user state

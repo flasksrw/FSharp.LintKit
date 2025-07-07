@@ -8,10 +8,10 @@ This is a custom F# analyzer project created with FSharp.LintKit templates.
 
 1. **Read the rule specifications** in `AI_RULE_IMPLEMENTATION.md`
 2. **Edit the existing files** (DO NOT create new files):
-   - `CustomAnalyzer.fs` - Replace TODO implementations with your analyzer logic
-   - `CustomAnalyzerTests.fs` - Add comprehensive test cases
+   - `TemplateAnalyzer.fs` - Replace TODO implementations with your analyzer logic
+   - `TemplateAnalyzerTests.fs` - Add comprehensive test cases
    - `MyCustomAnalyzer.fsproj` - Adjust if needed
-3. **Reference the complete patterns** in `CustomAnalyzer.fs` template
+3. **Reference the complete patterns** in `TemplateAnalyzer.fs` template
 4. **Build and test** your implementation
 
 ## 👨‍💻 FOR HUMAN DEVELOPERS
@@ -52,15 +52,15 @@ dotnet fsharplintkit --analyzers ./bin/Debug/net8.0/MyCustomAnalyzer.dll --targe
 
 ## Project Structure
 
-- `CustomAnalyzer.fs` - Main analyzer implementation (AI will complete this)
-- `CustomAnalyzerTests.fs` - Test suite (AI will complete this)
+- `TemplateAnalyzer.fs` - Main analyzer implementation (AI will complete this)
+- `TemplateAnalyzerTests.fs` - Test suite (AI will complete this)
 - `MyCustomAnalyzer.fsproj` - Project file with all dependencies
 
 ## Reference Patterns
 
 The AI agent will use the comprehensive patterns included in this template:
-- `CustomAnalyzer.fs` - Complete AST analysis template with all F# syntax patterns
-- `CustomAnalyzerTests.fs` - Working test patterns with proper FSharp.Analyzers.SDK.Testing usage
+- `TemplateAnalyzer.fs` - Complete AST analysis template with all F# syntax patterns
+- `TemplateAnalyzerTests.fs` - Working test patterns with proper FSharp.Analyzers.SDK.Testing usage
 - All F# AST patterns (SynExpr, SynModuleDecl, SynPat, SynType) ready for customization
 
 ## Next Steps

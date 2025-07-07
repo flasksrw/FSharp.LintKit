@@ -5,8 +5,8 @@
 **CRITICAL: DO NOT CREATE NEW FILES FROM SCRATCH**
 
 **MANDATORY WORKFLOW**:
-1. **COPY** `CustomAnalyzer.fs` → `YourRuleName.fs` 
-2. **COPY** `CustomAnalyzerTests.fs` → `YourRuleNameTests.fs`
+1. **COPY** `TemplateAnalyzer.fs` → `YourRuleName.fs` 
+2. **COPY** `TemplateAnalyzerTests.fs` → `YourRuleNameTests.fs`
 3. **EDIT** the copied files following the instructions inside each template
 4. **ADD** the copied files to `MyCustomAnalyzer.fsproj`
 5. **REPEAT** steps 1-4 for each additional rule
@@ -14,8 +14,8 @@
 **CONCRETE EXAMPLE**:
 ```bash
 # For a "No Hardcoded Strings" rule:
-cp CustomAnalyzer.fs NoHardcodedStringsAnalyzer.fs
-cp CustomAnalyzerTests.fs NoHardcodedStringsAnalyzerTests.fs
+cp TemplateAnalyzer.fs NoHardcodedStringsAnalyzer.fs
+cp TemplateAnalyzerTests.fs NoHardcodedStringsAnalyzerTests.fs
 ```
 
 **Then edit the copied files**:

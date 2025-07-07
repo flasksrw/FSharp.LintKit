@@ -13,7 +13,7 @@
     <!-- Example: <Compile Include="NoHardcodedStringsAnalyzerTests.fs" /> -->
     <!-- Example: <Compile Include="RequireTypeAnnotationsAnalyzer.fs" /> -->
     <!-- Example: <Compile Include="RequireTypeAnnotationsAnalyzerTests.fs" /> -->
-    <!-- DO NOT include CustomAnalyzer.fs or CustomAnalyzerTests.fs - they are template files only -->
+    <!-- DO NOT include TemplateAnalyzer.fs or TemplateAnalyzerTests.fs - they are template files only -->
   </ItemGroup>
 
   <ItemGroup>
@@ -26,10 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="CustomAnalyzer.fs">
+    <Content Include="TemplateAnalyzer.fs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="CustomAnalyzerTests.fs">
+    <Content Include="TemplateAnalyzerTests.fs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="AI_RULE_IMPLEMENTATION.md">

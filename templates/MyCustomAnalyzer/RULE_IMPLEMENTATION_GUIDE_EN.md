@@ -155,5 +155,5 @@ Multiple simple rules are more maintainable and easier for AI to implement.
 
 ### Support Resources
 - **AI Instructions**: `AI_RULE_IMPLEMENTATION.md` (included in this template)
-- **Complete AST Patterns**: `CustomAnalyzer.fs` (included in this template)
+- **Complete AST Patterns**: `TemplateAnalyzer.fs` (included in this template)
 - **Template**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer

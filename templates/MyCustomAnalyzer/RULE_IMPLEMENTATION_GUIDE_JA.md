@@ -155,5 +155,5 @@ dotnet test
 
 ### サポートリソース
 - **AI指示書**: `AI_RULE_IMPLEMENTATION.md`（このテンプレートに含まれています）
-- **完全なASTパターン**: `CustomAnalyzer.fs`（このテンプレートに含まれています）
+- **完全なASTパターン**: `TemplateAnalyzer.fs`（このテンプレートに含まれています）
 - **テンプレート**: https://github.com/flasksrw/FSharp.LintKit/tree/main/templates/MyCustomAnalyzer

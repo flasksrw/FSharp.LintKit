@@ -12,12 +12,12 @@ namespace MyCustomAnalyzer.Tests
 open FSharp.Analyzers.SDK.Testing
 // UPDATE THIS IMPORT: Change to your specific analyzer module
 // Example: open MyCustomAnalyzer.NoHardcodedStringsAnalyzer
-open MyCustomAnalyzer.CustomAnalyzer
+open MyCustomAnalyzer.TemplateAnalyzer
 open Xunit
 
 // RENAME THIS MODULE: Match your analyzer name
 // Example: NoHardcodedStringsAnalyzerTests, RequireTypeAnnotationsAnalyzerTests
-module CustomAnalyzerTests =
+module TemplateAnalyzerTests =
     
     /// <summary>
     /// Test that your rule detects the target pattern
