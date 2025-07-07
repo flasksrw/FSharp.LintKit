@@ -22,9 +22,9 @@ cp TemplateAnalyzerTests.fs NoHardcodedStringsAnalyzerTests.fs
 - Change module name to match the file name (e.g., `NoHardcodedStringsAnalyzer`)
 - Follow the detailed editing instructions inside each template file
 
-## Quality Checklist
+## Completion Requirements
 
-**For each rule** verify before completing implementation:
+**Implementation is complete only when ALL of these requirements are satisfied**:
 - [ ] Template files were copied (not created from scratch)
 - [ ] Module name matches the file name
 - [ ] Copied files were added to the project file
@@ -80,5 +80,7 @@ Fix Suggestion:
 After filling in the rule specifications above, send this document to an AI agent with:
 
 **"Please implement the F# analyzers based on the rule specifications provided above."**
+
+**REMINDER: The AI agent must satisfy ALL completion requirements listed above.**
 
 Review the generated code and iterate on the specifications if needed.
