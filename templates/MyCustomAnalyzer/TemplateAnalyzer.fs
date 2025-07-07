@@ -288,9 +288,9 @@ module TemplateAnalyzer =
 
         // === IDENTIFIER PATTERNS ===
         | SynPat.LongIdent(longDotId: SynLongIdent, extraId: Ident option, typarDecls: SynValTyparDecls option, argPats: SynArgPats, accessibility: SynAccess option, range: range) ->
-            // IDENTIFIER EXTRACTION: Qualified/function names from longDotId.LongIdent as Ident list, use idText for each element
+            // IDENTIFIER EXTRACTION: Qualified/function names from SynLongIdent pattern matching
             // CUSTOM RULE EXAMPLES: Module qualified name checks, function naming rule validation
-            // ACCESS PATTERN: longDotId.LongIdent |> List.map (fun id -> id.idText)
+            // ACCESS PATTERN: match longDotId with SynLongIdent(longId, _, _) -> longId |> List.map _.idText
             state
             |> analyzeArgPats argPats
         
@@ -404,9 +404,9 @@ module TemplateAnalyzer =
             |> analyzeExprs exprs
         
         | SynExpr.AnonRecd(isStruct: bool, copyInfo: (SynExpr * BlockSeparator) option, recordFields: (SynLongIdent * range option * SynExpr) list, range: range, trivia: SynExprAnonRecdTrivia) ->            
-            // IDENTIFIER EXTRACTION: Anonymous record field names during creation from recordFields |> List.map (fun (field, _, _) -> field.LongIdent)
+            // IDENTIFIER EXTRACTION: Anonymous record field names during creation from SynLongIdent pattern matching
             // CUSTOM RULE EXAMPLES: Record creation patterns, field initialization validation, invalid value checks
-            // ACCESS PATTERN: recordFields |> List.map (fun (fieldName, _, value) -> fieldName.LongIdent |> List.map (fun i -> i.idText), value)
+            // ACCESS PATTERN: recordFields |> List.map (fun (fieldName, _, value) -> (match fieldName with SynLongIdent(longId, _, _) -> longId |> List.map _.idText), value)
             state
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
             |> analyzeExpressions (recordFields |> List.map trd)
@@ -416,9 +416,9 @@ module TemplateAnalyzer =
             |> analyzeExpressions exprs
         
         | SynExpr.Record(baseInfo: (SynType * SynExpr * range * BlockSeparator option * range) option, copyInfo: (SynExpr * BlockSeparator) option, recordFields: SynExprRecordField list, range: range) ->
-            // IDENTIFIER EXTRACTION: Record field names during creation from recordFields SynExprRecordField(field, _, _, _)
+            // IDENTIFIER EXTRACTION: Record field names during creation from SynExprRecordField pattern matching
             // CUSTOM RULE EXAMPLES: Record update patterns, field assignment validation, copy syntax checks
-            // ACCESS PATTERN: recordFields |> List.map (function SynExprRecordField((fieldName, _), _, value, _) -> fieldName.LongIdent |> List.map (fun i -> i.idText), value)
+            // ACCESS PATTERN: recordFields |> List.map (function SynExprRecordField((fieldName, _), _, value, _) -> (match fieldName with SynLongIdent(longId, _, _) -> longId |> List.map _.idText), value)
             state
             |> analyzeOptionalExpression (baseInfo |> Option.map (fun (_, expr, _, _, _) -> expr))
             |> analyzeOptionalExpression (copyInfo |> Option.map fst)
@@ -593,11 +593,11 @@ module TemplateAnalyzer =
             state
         
         | SynExpr.LongIdent(isOptional: bool, longDotId: SynLongIdent, altNameRefCell: SynSimplePatAlternativeIdInfo ref option, range: range) ->
-            // IDENTIFIER EXTRACTION: Qualified identifier from longDotId.LongIdent as Ident list, use idText for qualified names
+            // IDENTIFIER EXTRACTION: Qualified identifier from SynLongIdent pattern matching
             // CUSTOM RULE EXAMPLES: Module reference checks, namespace usage validation, qualified naming rules, external package detection
-            // ACCESS PATTERN: let qualifiedName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
+            // ACCESS PATTERN: match longDotId with SynLongIdent(longId, _, _) -> longId |> List.map _.idText |> String.concat "."
             // PACKAGE REFERENCE DETECTION: Check for external library usage like Assert, Console, Math modules
-            // PATTERN: match longDotId.LongIdent with [module; member] -> (module.idText, member.idText) for two-part qualified names
+            // PATTERN: match longDotId with SynLongIdent([module; member], _, _) -> (module.idText, member.idText) for two-part qualified names
             state
         
         | SynExpr.LongIdentSet(longDotId: SynLongIdent, expr: SynExpr, range: range) ->
@@ -606,9 +606,9 @@ module TemplateAnalyzer =
         
         // === MEMBER ACCESS ===
         | SynExpr.DotGet(expr: SynExpr, rangeOfDot: range, longDotId: SynLongIdent, range: range) ->
-            // IDENTIFIER EXTRACTION: Member access names from longDotId.LongIdent for accessed member names
+            // IDENTIFIER EXTRACTION: Member access names from SynLongIdent pattern matching
             // CUSTOM RULE EXAMPLES: Member access patterns, property usage validation, API design guidelines
-            // ACCESS PATTERN: let memberName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
+            // ACCESS PATTERN: match longDotId with SynLongIdent(longId, _, _) -> longId |> List.map _.idText |> String.concat "."
             state
             |> analyzeExpression expr
         
@@ -617,9 +617,9 @@ module TemplateAnalyzer =
             |> analyzeExpression expr
         
         | SynExpr.DotSet(targetExpr: SynExpr, longDotId: SynLongIdent, rhsExpr: SynExpr, range: range) ->
-            // IDENTIFIER EXTRACTION: Member assignment names from longDotId.LongIdent for target member names
+            // IDENTIFIER EXTRACTION: Member assignment names from SynLongIdent pattern matching
             // CUSTOM RULE EXAMPLES: Immutable field assignment detection, mutability checks, property setting patterns
-            // ACCESS PATTERN: let memberName = longDotId.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
+            // ACCESS PATTERN: match longDotId with SynLongIdent(longId, _, _) -> longId |> List.map _.idText |> String.concat "."
             state
             |> analyzeExpression targetExpr
             |> analyzeExpression rhsExpr
