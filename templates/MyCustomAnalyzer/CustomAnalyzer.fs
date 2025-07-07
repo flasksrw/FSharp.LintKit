@@ -7,14 +7,13 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 
 /// <summary>
-/// **TEMPLATE FILE**: Copy this file to create your custom analyzer
+/// **TEMPLATE FILE**: Implement your custom analyzer here
 /// 
-/// **USAGE INSTRUCTIONS**:
-/// 1. COPY this file (e.g., to NoHardcodedStringsAnalyzer.fs)
-/// 2. RENAME the module from 'CustomAnalyzer' to your analyzer name
-/// 3. KEEP the 'contextAnalyzer' function name (module namespace prevents conflicts)
-/// 4. IMPLEMENT your specific analysis logic in the appropriate AST pattern sections
-/// 5. UPDATE the error messages, codes, and severity levels for your rules
+/// **EDITING INSTRUCTIONS**:
+/// 1. Change module name to match the file name (e.g., NoHardcodedStringsAnalyzer)
+/// 2. Add this file to MyCustomAnalyzer.fsproj: <Compile Include="YourAnalyzer.fs" />
+/// 3. IMPLEMENT your specific analysis logic in the appropriate AST pattern sections
+/// 4. UPDATE the error messages, codes, and severity levels for your rules
 /// 
 /// **INCLUDES ALL F# AST PATTERNS**:
 /// - SynExpr: All F# expressions (function calls, literals, control flow, etc.)
@@ -22,8 +21,10 @@ open FSharp.Compiler.Xml
 /// - SynPat: Pattern matching constructs (tuple patterns, record patterns, etc.)
 /// - SynType: Type expressions (function types, generic types, etc.)
 /// 
-/// **For AI Agents**: Copy this entire file and modify the specific pattern sections you need.
-/// **For Humans**: Use this as a complete template with all F# AST patterns ready to customize.
+/// **Complete AST analysis reference with all integrated knowledge**:
+/// - Identifier extraction, package reference detection, attribute analysis
+/// - Type annotation guidance, severity level guidelines (Error/Warning/Info/Hint)
+/// - UserState pattern for extensible stateful analysis
 /// </summary>
 module CustomAnalyzer =
 
