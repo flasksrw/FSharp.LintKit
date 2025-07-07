@@ -35,15 +35,33 @@ module TemplateAnalyzerTests =
             let! projectOptions =
                 mkOptionsFromProject
                     "net9.0"  // Adjust target framework as needed
-                    []        // Add packages if test code uses external libraries
-                              // Example: [{ Name = "xunit"; Version = "2.9.2" }] for [<Fact>] attributes
-                              // Example: [{ Name = "MyLibrary"; Version = "1.0.0" }] for custom libraries
+                    []        // Add packages ONLY if fsharpCode uses external libraries
+                              // 
+                              // Only add packages for libraries used INSIDE fsharpCode string:
+                              // 
+                              // Example: [{ Name = "Xunit"; Version = "2.9.2" }] if fsharpCode contains "open Xunit"
+                              // Example: [{ Name = "MyLibrary"; Version = "1.0.0" }] if fsharpCode contains "open MyLibrary"
+                              // Example: [] (empty) if fsharpCode only uses basic F# syntax
                 |> Async.AwaitTask
             
             let fsharpCode = """
 module TestModule
 
 // REPLACE: Add F# code to be analyzed by your rule
+// IMPORTANT: This code must be SELF-CONTAINED (no missing functions, opens, etc.)
+// - All variables and functions must be defined
+// - All required modules must be opened
+// - Code must compile without errors
+// 
+// Example: To test "f x" pattern, define both f and x:
+// let f x = x + 1
+// let x = 5
+// let result = f x
+// 
+// If you need external libraries, add them to the packages list above
+// Example: open System  (no package needed - built-in)
+// Example: open Xunit; Assert.True(true)  (needs Xunit package)
+
 let example = "your test code here"
 """
             
