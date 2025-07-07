@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <AssemblyName>LintKit.CLI.Tests</AssemblyName>
+    <RootNamespace>LintKit.CLI.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -6,6 +6,6 @@
   </Configurations>
   <Folder Name="/src/">
     <Project Path="src/LintKit.CLI/LintKit.CLI.fsproj" />
-    <Project Path="tests/LintKit.Tests/LintKit.Tests.fsproj" />
+    <Project Path="tests/LintKit.CLI.Tests/LintKit.CLI.Tests.fsproj" />
   </Folder>
 </Solution>

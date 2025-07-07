@@ -195,7 +195,7 @@ FSharp.LintKit/
 ├── templates/
 │   └── MyCustomAnalyzer/         # NuGet project template with complete AST patterns
 ├── tests/
-│   └── LintKit.Tests/            # Unit tests for CLI components
+│   └── LintKit.CLI.Tests/        # Unit tests for CLI components
 └── README.md                     # This file
 ```
 

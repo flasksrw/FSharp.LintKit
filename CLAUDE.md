@@ -127,7 +127,7 @@ The template system provides a comprehensive foundation for F# AST analysis patt
                                    # - Integrated severity level guidelines (Error/Warning/Info/Hint)
       /CustomAnalyzerTests.fs      # Working test suite using correct FSharp.Analyzers.SDK.Testing patterns
   /tests
-    /LintKit.Tests
+    /LintKit.CLI.Tests
 README.md
 LICENSE
 ```
