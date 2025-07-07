@@ -992,3 +992,13 @@ module TemplateAnalyzer =
                         Fixes = []
                     }]
             }
+
+// ============================================================================
+// REFERENCE DOCUMENTATION
+// ============================================================================
+// 
+// Complete F# Compiler syntax tree type definitions:
+// https://raw.githubusercontent.com/dotnet/fsharp/main/src/Compiler/SyntaxTree/SyntaxTree.fsi
+//
+// This file contains all syntax tree type definitions including SynExpr, SynPat, 
+// SynType, SynModuleDecl, SynLongIdent, SynIdent, and more.
