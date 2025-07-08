@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageType>Template</PackageType>
     <PackageId>FSharp.LintKit.Templates</PackageId>
-    <PackageVersion>0.1.0</PackageVersion>
+    <PackageVersion>0.1.0-preview</PackageVersion>
     <Title>F# LintKit Project Templates</Title>
     <Authors>flasksrw</Authors>
     <Description>Project templates for creating custom F# analyzers with FSharp.LintKit. Includes AI-driven implementation support.</Description>

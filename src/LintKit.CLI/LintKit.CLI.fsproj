@@ -6,7 +6,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>fsharplintkit</ToolCommandName>
     <PackageId>FSharp.LintKit</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.0-preview</Version>
     <AssemblyVersion>0.1.0</AssemblyVersion>
     <FileVersion>0.1.0</FileVersion>
     <Authors>flasksrw</Authors>

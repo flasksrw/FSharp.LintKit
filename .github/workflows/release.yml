@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  release:
+    name: Release NuGet Packages
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG_NAME#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build CLI project
+      run: dotnet build src/LintKit.CLI/LintKit.CLI.fsproj --configuration Release --no-restore
+    
+    - name: Run tests
+      run: dotnet test --configuration Release --no-build --verbosity normal
+    
+    - name: Pack CLI NuGet package
+      run: dotnet pack src/LintKit.CLI/LintKit.CLI.fsproj --configuration Release --no-build --output ./packages
+    
+    - name: Pack Templates NuGet package
+      run: dotnet pack src/LintKit.Templates/LintKit.Templates.csproj --configuration Release --output ./packages
+    
+    - name: Upload packages as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./packages/*.nupkg
+    
+    - name: Publish CLI package to NuGet
+      run: dotnet nuget push ./packages/FSharp.LintKit.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    
+    - name: Publish Templates package to NuGet
+      run: dotnet nuget push ./packages/FSharp.LintKit.Templates.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
