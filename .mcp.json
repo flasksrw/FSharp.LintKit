@@ -2,7 +2,7 @@
   "mcpServers": {
     "fsharp": {
       "command": "npx",
-      "args": ["-y", "@mizchi/lsmcp", "--bin", "dotnet tool run fsautocomplete"]
+      "args": ["-y", "@mizchi/lsmcp", "-p", "fsharp"]
     }
   }
 }
