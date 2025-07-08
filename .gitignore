@@ -47,3 +47,6 @@ coverage/
 
 # Benchmark results
 BenchmarkDotNet.Artifacts/
+
+# Ignore tool installation directories
+.config/dotnet-tools/
