@@ -53,7 +53,9 @@ jobs:
           next
         }
         { print }
-        ' MyCustomAnalyzer.fsproj > temp.fsproj && mv temp.fsproj MyCustomAnalyzer.fsproj
+        ' MyCustomAnalyzer.fsproj > temp.fsproj
+        rm MyCustomAnalyzer.fsproj
+        mv temp.fsproj MyCustomAnalyzer.fsproj
     
     - name: Build template project
       run: |
