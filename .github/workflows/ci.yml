@@ -34,3 +34,20 @@ jobs:
     
     - name: Test
       run: dotnet test --no-build --configuration Release --verbosity normal
+    
+    - name: Copy template files
+      run: |
+        cd templates/MyCustomAnalyzer
+        cp TemplateAnalyzer.fs TestAnalyzer.fs
+        cp TemplateAnalyzerTests.fs TestAnalyzerTests.fs
+    
+    - name: Add template files to project
+      run: |
+        cd templates/MyCustomAnalyzer
+        dotnet add compile TestAnalyzer.fs
+        dotnet add compile TestAnalyzerTests.fs
+    
+    - name: Build template project
+      run: |
+        cd templates/MyCustomAnalyzer
+        dotnet build --configuration Release
