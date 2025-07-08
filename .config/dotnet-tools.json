@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "fsautocomplete": {
+      "version": "0.78.3",
+      "commands": [
+        "fsautocomplete"
+      ],
+      "rollForward": false
+    }
+  }
+}
