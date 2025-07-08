@@ -44,8 +44,16 @@ jobs:
     - name: Add template files to project
       run: |
         cd templates/MyCustomAnalyzer
-        dotnet add compile TestAnalyzer.fs
-        dotnet add compile TestAnalyzerTests.fs
+        # Add compile items to the empty ItemGroup
+        awk '
+        /<!-- DO NOT include TemplateAnalyzer.fs or TemplateAnalyzerTests.fs - they are template files only -->/ {
+          print $0
+          print "    <Compile Include=\"TestAnalyzer.fs\" />"
+          print "    <Compile Include=\"TestAnalyzerTests.fs\" />"
+          next
+        }
+        { print }
+        ' MyCustomAnalyzer.fsproj > temp.fsproj && mv temp.fsproj MyCustomAnalyzer.fsproj
     
     - name: Build template project
       run: |
