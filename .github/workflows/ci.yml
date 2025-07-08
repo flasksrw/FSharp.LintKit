@@ -33,12 +33,4 @@ jobs:
       run: dotnet build --no-restore --configuration Release
     
     - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
-    
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      if: matrix.os == 'ubuntu-latest'
-      with:
-        files: '**/coverage.cobertura.xml'
-        fail_ci_if_error: false
-        token: ${{ secrets.CODECOV_TOKEN }}
+      run: dotnet test --no-build --configuration Release --verbosity normal
